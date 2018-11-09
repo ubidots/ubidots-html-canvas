@@ -1,9 +1,12 @@
 {
-  "name": "ubidots",
+  "name": "ubidots-html-canvas",
   "version": "1.0.0",
   "description": "Ubidots HTML canvas post message library",
   "main": "index.js",
-  "repository": "https://github.com/ubidots/ubidots-html-canvas.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ubidots/ubidots-html-canvas.git"
+  },
   "author": "Sebastian Saldarriaga <sebastian@ubidots.com>",
   "license": "MIT"
 }
