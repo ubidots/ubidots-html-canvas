@@ -2,6 +2,10 @@
   "name": "ubidots-html-canvas",
   "version": "1.0.0",
   "description": "Ubidots HTML canvas post message library",
+  "scripts": {
+    "babel": "babel --presets=@babel/preset-env --plugins=transform-object-rest-spread index.js -o build/ubidots-html-canvas.js",
+    "webpack": "webpack"
+  },
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -11,12 +15,10 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "babel": "^6.23.0",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
+    "@babel/core": "^7.1.5",
+    "@babel/preset-env": "^7.1.5",
     "babel-loader": "^8.0.4",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "webpack": "^4.25.1"
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2"
   }
 }
