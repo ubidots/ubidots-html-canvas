@@ -1,11 +1,16 @@
 /**
  * Create a listener to be able to listen to the Ubidots messages.
+ * @class Listener
+ * @param {String} eventName - Name of the event you want to listen to ()
  */
 class Listener {
-  constructor() {
+  constructor(eventName) {
     this.token = undefined;
     this.device = undefined;
     this.dashboardDateRange = undefined;
+
+    this._listener = null;
+    this._eventName = eventName;
   }
 
   /**
@@ -34,7 +39,7 @@ class Listener {
    * @returns {String} Id of the selected device
    * @memberOf Listener
    */
-  getDevice() {
+  getSelectedDevice() {
     return this.devices;
   }
 
@@ -45,7 +50,7 @@ class Listener {
    * @private
    * @memberOf Listener
    */
-  _setDevice(device = undefined) {
+  _setSelectedDevice(device = undefined) {
     this.devices = devices;
   }
 
@@ -76,33 +81,33 @@ class Listener {
 
   /**
    * Make a window listener event to receive dashboard messages
-   * @param {String} eventName - Event name to listen
    * @param {Function} [callback] - Function to execute when be listen to the message
    * 
    * @memberOf Listener
    */
-  on(eventName, callback = undefined) {
+  on(callback = undefined) {
     this._listenMessage(eventName, callback);
   }
 
   /**
    * Make a window listener event to receive dashboard messages and set data values to class attributes
-   * @param {String} eventName - Event name to listen
    * @param {Function} [callback] - Function to execute when be listen to the message
    * 
    * @private
    * @memberOf Listener
    */
-  _listenMessage(eventName, callback = undefined) {
-    window.addEventListener('message', (data) => {
-      if (data.event !== eventName) return;
+  _listenMessage(callback = undefined) {
+    if (this._listener) return;
+
+    this._listener = window.addEventListener('message', (data) => {
+      if (data.event !== this._eventName) return;
 
       if (typeof callback === 'function') {
         callback(data);
       }
 
       const eventsData = {
-        selectedDevice: this._setDevice,
+        selectedDevice: this._setSelectedDevice,
         selectedDashboardDateRange: this._setDashboardDateRange,
         receivedToken: this._setToken,
       };
