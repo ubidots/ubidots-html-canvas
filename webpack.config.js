@@ -2,11 +2,13 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
-  entry: './index.js',
+  entry: './src/Ubidots.js',
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'ubidots-html-canvas.js',
-    library: 'UbidotsHtmlCanvas',
+    library: 'Ubidots',
+    libraryTarget: 'umd',
+    libraryExport: 'default',
   },
   module: {
     rules: [
@@ -16,6 +18,7 @@ module.exports = {
         loader: 'babel-loader',
         query: {
           presets: ['@babel/preset-env'],
+          plugins: ['@babel/plugin-proposal-class-properties']
         },
       },
     ],
