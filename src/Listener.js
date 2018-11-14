@@ -1,16 +1,17 @@
 /**
  * Create a listener to be able to listen to the Ubidots messages.
  * @class Listener
- * @param {String} eventName - Name of the event you want to listen to ()
  */
 class Listener {
-  constructor(eventName) {
-    this.token = undefined;
-    this.device = undefined;
-    this.dashboardDateRange = undefined;
-
+  constructor() {
     this._listener = null;
-    this._eventName = eventName;
+    this._eventsCallback = {
+      selectedDevice: null,
+      selectedDashboardDateRange: null,
+      receivedToken: null,
+    };
+
+    this._listenMessage();
   }
 
   /**
@@ -25,7 +26,7 @@ class Listener {
 
   /**
    * Set the token value
-   * @param {String} [token=undefined] - token of the user
+   * @param {String} token - token of the user
    * 
    * @private
    * @memberOf Listener
@@ -81,29 +82,31 @@ class Listener {
 
   /**
    * Make a window listener event to receive dashboard messages
+   * @param {String} eventName - Event name to listen
    * @param {Function} [callback] - Function to execute when be listen to the message
    * 
    * @memberOf Listener
    */
-  on(callback = undefined) {
-    this._listenMessage(eventName, callback);
+  on(eventName, callback = undefined) {
+    if (Object.keys(this._eventsCallback).includes(eventName)) {
+      this._eventsCallback[eventName] = callback;
+    }
   }
 
   /**
    * Make a window listener event to receive dashboard messages and set data values to class attributes
+   * @param {String} eventName - Event name to listen
    * @param {Function} [callback] - Function to execute when be listen to the message
    * 
    * @private
    * @memberOf Listener
    */
-  _listenMessage(callback = undefined) {
+  _listenMessage() {
     if (this._listener) return;
 
     this._listener = window.addEventListener('message', (data) => {
-      if (data.event !== this._eventName) return;
-
-      if (typeof callback === 'function') {
-        callback(data);
+      if (this._eventsCallback[data.type] !== null) {
+        this._eventsCallback[data.type](data.payload)
       }
 
       const eventsData = {
