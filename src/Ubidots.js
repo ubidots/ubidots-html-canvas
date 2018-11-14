@@ -1,10 +1,9 @@
 /**
  * Create a listener to be able to listen to the Ubidots messages.
- * @class Listener
+ * @class Ubidots
  */
-class Listener {
+class Ubidots {
   constructor() {
-    this._listener = null;
     this._eventsCallback = {
       selectedDevice: null,
       selectedDashboardDateRange: null,
@@ -18,10 +17,10 @@ class Listener {
    * Returns the token of the user.
    * @returns {String} Token of the user.
    * 
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  getToken() {
-    return this.token;
+  get token() {
+    return this._token;
   }
 
   /**
@@ -29,30 +28,30 @@ class Listener {
    * @param {String} token - token of the user
    * 
    * @private
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  _setToken(token = undefined) {
-    this.token = token;
+  _setToken = (token) => {
+    this._token = token;
   }
 
   /**
    * Returns selected device in the dashboard
    * @returns {String} Id of the selected device
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  getSelectedDevice() {
-    return this.devices;
+  get selectedDevice() {
+    return this._selectedDevice;
   }
 
   /**
    * Set the device id value
-   * @param {String} [device=undefined] - The selected device id in the dashboard
+   * @param {String} selectedDevice - The selected device id in the dashboard
    * 
    * @private
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  _setSelectedDevice(device = undefined) {
-    this.devices = devices;
+  _setSelectedDevice = (selectedDevice) => {
+    this._selectedDevice = selectedDevice;
   }
 
   /**
@@ -61,23 +60,23 @@ class Listener {
    * @property {number} start - Initial selected date
    * @property {number} end - End selected date
    * 
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  getDashboardDateRange() {
-    return this.dashboardDateRange;
+  get dashboardDateRange() {
+    return this._dashboardDateRange;
   }
 
   /**
    * Set the selected date range
-   * @param {Object} [dashboardDateRange=undefined] - The selected date range in the dashboard
+   * @param {Object} dashboardDateRange - The selected date range in the dashboard
    * @property {number} start - Initial selected date
    * @property {number} end - End selected date
    * 
    * @private
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  _setDashboardDateRange(dashboardDateRange = undefined) {
-    this.dashboardDateRange = dashboardDateRange;
+  _setDashboardDateRange = (dashboardDateRange) => {
+    this._dashboardDateRange = dashboardDateRange;
   }
 
   /**
@@ -85,9 +84,9 @@ class Listener {
    * @param {String} eventName - Event name to listen
    * @param {Function} [callback] - Function to execute when be listen to the message
    * 
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  on(eventName, callback = undefined) {
+  on = (eventName, callback = undefined) => {
     if (Object.keys(this._eventsCallback).includes(eventName)) {
       this._eventsCallback[eventName] = callback;
     }
@@ -99,25 +98,25 @@ class Listener {
    * @param {Function} [callback] - Function to execute when be listen to the message
    * 
    * @private
-   * @memberOf Listener
+   * @memberOf Ubidots
    */
-  _listenMessage() {
-    if (this._listener) return;
-
-    this._listener = window.addEventListener('message', (data) => {
-      if (this._eventsCallback[data.type] !== null) {
-        this._eventsCallback[data.type](data.payload)
-      }
-
-      const eventsData = {
-        selectedDevice: this._setSelectedDevice,
-        selectedDashboardDateRange: this._setDashboardDateRange,
-        receivedToken: this._setToken,
-      };
-
-      eventsData[data.type](data.payload);
-    }, );
+  _listenMessage = () => {
+    window.addEventListener(
+      'message',
+      (message) => {
+        if (this._eventsCallback[message.data.event] !== null) {
+          this._eventsCallback[message.data.event](message.data.payload)
+        }
+        
+        const eventsData = {
+          selectedDevice: this._setSelectedDevice,
+          selectedDashboardDateRange: this._setDashboardDateRange,
+          receivedToken: this._setToken,
+        };
+        eventsData[message.data.event](message.data.payload);
+      },
+    );
   }
 }
 
-export default Listener;
+export default Ubidots;
