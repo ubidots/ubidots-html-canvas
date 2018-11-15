@@ -26,7 +26,7 @@ class Ubidots {
   /**
    * Set the token value
    * @param {String} token - token of the user
-   * 
+   *
    * @private
    * @memberOf Ubidots
    */
@@ -104,7 +104,9 @@ class Ubidots {
     window.addEventListener(
       'message',
       (event) => {
-        if (this._eventsCallback[event.data.event] !== null) {
+        if (!Object.keys(this._eventsCallback).includes(event.data.event)) return;
+
+        if (typeof this._eventsCallback[event.data.event] === 'function') {
           this._eventsCallback[event.data.event](event.data.payload)
         }
 
