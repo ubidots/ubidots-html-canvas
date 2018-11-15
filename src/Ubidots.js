@@ -103,9 +103,9 @@ class Ubidots {
   _listenMessage = () => {
     window.addEventListener(
       'message',
-      (message) => {
-        if (this._eventsCallback[message.data.event] !== null) {
-          this._eventsCallback[message.data.event](message.data.payload)
+      (event) => {
+        if (this._eventsCallback[event.data.event] !== null) {
+          this._eventsCallback[event.data.event](event.data.payload)
         }
 
         const eventsData = {
@@ -113,7 +113,7 @@ class Ubidots {
           selectedDashboardDateRange: this._setDashboardDateRange,
           receivedToken: this._setToken,
         };
-        eventsData[message.data.event](message.data.payload);
+        eventsData[event.data.event](event.data.payload);
       },
     );
   }
