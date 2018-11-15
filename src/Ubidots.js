@@ -16,7 +16,7 @@ class Ubidots {
   /**
    * Returns the token of the user.
    * @returns {String} Token of the user.
-   * 
+   *
    * @memberOf Ubidots
    */
   get token() {
@@ -46,7 +46,7 @@ class Ubidots {
   /**
    * Set the device id value
    * @param {String} selectedDevice - The selected device id in the dashboard
-   * 
+   *
    * @private
    * @memberOf Ubidots
    */
@@ -59,7 +59,7 @@ class Ubidots {
    * @returns {Object} Date range selected
    * @property {number} start - Initial selected date
    * @property {number} end - End selected date
-   * 
+   *
    * @memberOf Ubidots
    */
   get dashboardDateRange() {
@@ -71,7 +71,7 @@ class Ubidots {
    * @param {Object} dashboardDateRange - The selected date range in the dashboard
    * @property {number} start - Initial selected date
    * @property {number} end - End selected date
-   * 
+   *
    * @private
    * @memberOf Ubidots
    */
@@ -83,7 +83,7 @@ class Ubidots {
    * Make a window listener event to receive dashboard messages
    * @param {String} eventName - Event name to listen
    * @param {Function} [callback] - Function to execute when be listen to the message
-   * 
+   *
    * @memberOf Ubidots
    */
   on = (eventName, callback = undefined) => {
@@ -96,7 +96,7 @@ class Ubidots {
    * Make a window listener event to receive dashboard messages and set data values to class attributes
    * @param {String} eventName - Event name to listen
    * @param {Function} [callback] - Function to execute when be listen to the message
-   * 
+   *
    * @private
    * @memberOf Ubidots
    */
@@ -107,7 +107,7 @@ class Ubidots {
         if (this._eventsCallback[message.data.event] !== null) {
           this._eventsCallback[message.data.event](message.data.payload)
         }
-        
+
         const eventsData = {
           selectedDevice: this._setSelectedDevice,
           selectedDashboardDateRange: this._setDashboardDateRange,
