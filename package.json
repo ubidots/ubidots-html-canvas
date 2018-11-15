@@ -15,11 +15,13 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "@babel/core": "^7.1.5",
-    "@babel/plugin-proposal-class-properties": "^7.1.0",
-    "@babel/preset-env": "^7.1.5",
-    "babel-loader": "^8.0.4",
-    "webpack": "^4.25.1",
-    "webpack-cli": "^3.1.2"
+    "@babel/core": "7.1.5",
+    "@babel/plugin-proposal-class-properties": "7.1.0",
+    "@babel/preset-env": "7.1.5",
+    "babel-eslint": "8",
+    "babel-loader": "8.0.4",
+    "eslint": "4.x",
+    "webpack": "4.25.1",
+    "webpack-cli": "3.1.2"
   }
 }
