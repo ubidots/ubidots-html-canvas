@@ -104,7 +104,7 @@ class Ubidots {
     window.addEventListener(
       'message',
       (event) => {
-        if (!Object.keys(this._eventsCallback).includes(event.data.event)) return;
+        if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event)) return;
 
         if (typeof this._eventsCallback[event.data.event] === 'function') {
           this._eventsCallback[event.data.event](event.data.payload)
