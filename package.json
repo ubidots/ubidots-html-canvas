@@ -4,7 +4,8 @@
   "description": "Ubidots HTML canvas post message library",
   "scripts": {
     "babel": "babel src/Ubidots.js -o build/ubidots-html-canvas.js",
-    "build": "webpack"
+    "build": "webpack",
+    "unit": "mocha --require @babel/register -r jsdom-global/register --recursive './tests/*.js'"
   },
   "main": "src/ubidots.js",
   "repository": {
@@ -18,9 +19,15 @@
     "@babel/core": "7.1.5",
     "@babel/plugin-proposal-class-properties": "7.1.0",
     "@babel/preset-env": "7.1.5",
+    "@babel/register": "7.0.0",
     "babel-eslint": "8",
     "babel-loader": "8.0.4",
     "eslint": "4.x",
+    "expect.js": "0.3.1",
+    "jsdom": "13.0.0",
+    "jsdom-global": "3.0.2",
+    "mocha": "5.2.0",
+    "sinon": "7.1.1",
     "webpack": "4.25.1",
     "webpack-cli": "3.1.2"
   }
