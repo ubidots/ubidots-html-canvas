@@ -8,6 +8,7 @@ class Ubidots {
       selectedDevice: null,
       selectedDashboardDateRange: null,
       receivedToken: null,
+      ready: null,
     };
 
     window.addEventListener('message', this._listenMessage);
@@ -103,16 +104,21 @@ class Ubidots {
   _listenMessage = (event) => {
     if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event)) return;
 
-    if (typeof this._eventsCallback[event.data.event] === 'function') {
-      this._eventsCallback[event.data.event](event.data.payload)
-    }
-
     const eventsData = {
       selectedDevice: this._setSelectedDevice,
       selectedDashboardDateRange: this._setDashboardDateRange,
       receivedToken: this._setToken,
     };
     eventsData[event.data.event](event.data.payload);
+
+    if (typeof this._eventsCallback[event.data.event] === 'function') {
+      this._eventsCallback[event.data.event](event.data.payload);
+    }
+
+    if (this._token !== undefined && this._selectedDevice !== undefined && this._dashboardDateRange !== undefined && typeof this._eventsCallback.ready === 'function') {
+      this._eventsCallback.ready();
+      this._eventsCallback.ready === null;
+    }
   }
 }
 
