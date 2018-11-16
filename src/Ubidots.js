@@ -10,7 +10,7 @@ class Ubidots {
       receivedToken: null,
     };
 
-    this._listenMessage();
+    window.addEventListener('message', this._listenMessage);
   }
 
   /**
@@ -100,24 +100,19 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _listenMessage = () => {
-    window.addEventListener(
-      'message',
-      (event) => {
-        if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event)) return;
+  _listenMessage = (event) => {
+    if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event)) return;
 
-        if (typeof this._eventsCallback[event.data.event] === 'function') {
-          this._eventsCallback[event.data.event](event.data.payload)
-        }
+    if (typeof this._eventsCallback[event.data.event] === 'function') {
+      this._eventsCallback[event.data.event](event.data.payload)
+    }
 
-        const eventsData = {
-          selectedDevice: this._setSelectedDevice,
-          selectedDashboardDateRange: this._setDashboardDateRange,
-          receivedToken: this._setToken,
-        };
-        eventsData[event.data.event](event.data.payload);
-      },
-    );
+    const eventsData = {
+      selectedDevice: this._setSelectedDevice,
+      selectedDashboardDateRange: this._setDashboardDateRange,
+      receivedToken: this._setToken,
+    };
+    eventsData[event.data.event](event.data.payload);
   }
 }
 
