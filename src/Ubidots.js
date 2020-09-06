@@ -117,7 +117,7 @@ class Ubidots {
 
     if (this._token !== undefined && this._selectedDevice !== undefined && this._dashboardDateRange !== undefined && typeof this._eventsCallback.ready === 'function') {
       this._eventsCallback.ready();
-      this._eventsCallback.ready === null;
+      this._eventsCallback.ready = null;
     }
   }
 }

@@ -195,5 +195,73 @@ describe('Array', () => {
       expect(spy.notCalled).to.be.ok();
       expect(obj.dashboardDateRange).to.be(selectedDashboardDateRange);
     });
+
+    it('should not execute the ready event if the previous values are not yet set', () => {
+      const ubidots = setUp();
+      global.window = { location: { origin: 'http://127.0.0.1' } };
+
+      const spy = sinon.spy();
+      ubidots.on('ready', spy);
+
+      const event = {
+        origin: 'http://127.0.0.1',
+        data: {
+          event: 'receivedToken',
+          payload: 'test-token',
+        },
+      };
+      ubidots._listenMessage(event);
+
+      expect(spy.notCalled).to.be.ok();
+    });
+
+    it('should execute the ready event if the previous values are set', () => {
+      const ubidots = setUp();
+      global.window = { location: { origin: 'http://127.0.0.1' } };
+
+      const spy = sinon.spy();
+      ubidots.on('ready', spy);
+
+      ubidots._token = 'prefilled-token';
+      ubidots._selectedDevice = 'prefilled-device';
+      ubidots._dashboardDateRange = 'prefilled-date';
+
+      const event = {
+        origin: 'http://127.0.0.1',
+        data: {
+          event: 'receivedToken',
+          payload: 'test-token',
+        },
+      };
+      ubidots._listenMessage(event);
+
+      expect(spy.called).to.be.ok();
+    });
+
+    it('should execute the ready event only once in the lifetime', () => {
+      const ubidots = setUp();
+      global.window = { location: { origin: 'http://127.0.0.1' } };
+
+      const spy = sinon.spy();
+      ubidots.on('ready', spy);
+
+      ubidots._token = 'prefilled-token';
+      ubidots._selectedDevice = 'prefilled-device';
+      ubidots._dashboardDateRange = 'prefilled-date';
+
+      const event = {
+        origin: 'http://127.0.0.1',
+        data: {
+          event: 'receivedToken',
+          payload: 'test-token',
+        },
+      };
+
+      for (let i = 0; i < 50; i++) {
+        ubidots._listenMessage(event);
+      }
+
+      expect(spy.calledOnce).to.be.ok();
+    });
   });
 });
