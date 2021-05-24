@@ -9,9 +9,68 @@ class Ubidots {
       selectedDashboardDateRange: null,
       receivedToken: null,
       ready: null,
+      isRealTimeActive: null,
+      dashboardRefreshed: null,
+      selectedDeviceObject: null,
+      selectedDashboardObject: null,
     };
 
-    window.addEventListener('message', this._listenMessage);
+    window.addEventListener("message", this._listenMessage);
+  }
+
+  /**
+   * Send a post Message
+   * @param {Object}
+   * @property {String} event - event name
+   * @property {String} payload - event payload
+   * @private
+   * @memberOf Ubidots
+   */
+  _sendPostMessage({ event, payload }) {
+    window.parent.postMessage(
+      { event: event, payload: payload },
+      window.location.origin
+    );
+  }
+
+  /**
+   * Set Dashboard Device
+   * @param {String} deviceId - Device id
+   * @memberOf Ubidots
+   */
+  setDashboardDevice(deviceId) {
+    this._sendPostMessage({ event: "setDashboardDevice", payload: deviceId });
+  }
+
+  /**
+   * Set Dashboard Data Range
+   * @param {Object}
+   * @property {number} start - Initial selected date
+   * @property {number} end - End selected date
+   * @memberOf Ubidots
+   */
+  setDashboardDateRange(range) {
+    this._sendPostMessage({
+      event: "setDashboardDateRange",
+      payload: range,
+    });
+  }
+
+  /**
+   * Set Realtime
+   * @param {Boolean} enableRealTime
+   * @memberOf Ubidots
+   */
+  setRealTime(enableRealTime) {
+    this._sendPostMessage({ event: "setRealTime", payload: enableRealTime });
+  }
+
+  /**
+   * Refresh the Dashboard
+   * @memberOf Ubidots
+   */
+  refreshDashboard() {
+    this._sendPostMessage({ event: "setDashboardDevice" });
   }
 
   /**
@@ -33,7 +92,7 @@ class Ubidots {
    */
   _setToken = (token) => {
     this._token = token;
-  }
+  };
 
   /**
    * Returns selected device in the dashboard
@@ -53,7 +112,7 @@ class Ubidots {
    */
   _setSelectedDevice = (selectedDevice) => {
     this._selectedDevice = selectedDevice;
-  }
+  };
 
   /**
    * Returns selected date range in the dashboard
@@ -78,8 +137,69 @@ class Ubidots {
    */
   _setDashboardDateRange = (dashboardDateRange) => {
     this._dashboardDateRange = dashboardDateRange;
+  };
+
+  /**
+   * Returns the realTime status.
+   * @returns {Boolean} with realTime status.
+   *
+   * @memberOf Ubidots
+   */
+  get realTime() {
+    return this._realTime;
   }
 
+  /**
+   * Set the realTime value
+   * @param {Boolean} realTime
+   *
+   * @private
+   * @memberOf Ubidots
+   */
+  _setRealTime = (realTime) => {
+    this._realTime = realTime;
+  };
+
+  /**
+   * Returns the deviceObject.
+   * @returns {Object} deviceObject.
+   *
+   * @memberOf Ubidots
+   */
+  get deviceObject() {
+    return this._deviceObject;
+  }
+
+  /**
+   * Set the deviceObject value
+   * @param {Object} deviceObject - deviceObject
+   *
+   * @private
+   * @memberOf Ubidots
+   */
+  _setDeviceObject = (deviceObject) => {
+    this._deviceObject = deviceObject;
+  };
+  /**
+   * Returns the dashboardObject.
+   * @returns {Object} dashboardObject.
+   *
+   * @memberOf Ubidots
+   */
+  get dashboardObject() {
+    return this._dashboardObject;
+  }
+
+  /**
+   * Set the dashboardObject value
+   * @param {Object} dashboardObject - dashboardObject
+   *
+   * @private
+   * @memberOf Ubidots
+   */
+  _setDashboardObject = (dashboardObject) => {
+    this._dashboardObject = dashboardObject;
+  };
   /**
    * Make a window listener event to receive dashboard messages
    * @param {String} eventName - Event name to listen
@@ -91,7 +211,7 @@ class Ubidots {
     if (Object.keys(this._eventsCallback).includes(eventName)) {
       this._eventsCallback[eventName] = callback;
     }
-  }
+  };
 
   /**
    * Make a window listener event to receive dashboard messages and set data values to class attributes
@@ -102,24 +222,37 @@ class Ubidots {
    * @memberOf Ubidots
    */
   _listenMessage = (event) => {
-    if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event)) return;
+    if (
+      event.origin !== window.location.origin ||
+      !Object.keys(this._eventsCallback).includes(event.data.event)
+    )
+      return;
 
     const eventsData = {
       selectedDevice: this._setSelectedDevice,
       selectedDashboardDateRange: this._setDashboardDateRange,
       receivedToken: this._setToken,
+      isRealTimeActive: this._setRealTime,
+      selectedDeviceObject: this._setDeviceObject,
+      selectedDashboardObject: this._setDashboardObject,
     };
     eventsData[event.data.event](event.data.payload);
 
-    if (typeof this._eventsCallback[event.data.event] === 'function') {
+    if (typeof this._eventsCallback[event.data.event] === "function") {
       this._eventsCallback[event.data.event](event.data.payload);
     }
 
-    if (this._token !== undefined && this._selectedDevice !== undefined && this._dashboardDateRange !== undefined && typeof this._eventsCallback.ready === 'function') {
+    if (
+      this._token !== undefined &&
+      this._selectedDevice !== undefined &&
+      this._dashboardDateRange !== undefined &&
+      this._dashboardObject !== undefined &&
+      typeof this._eventsCallback.ready === "function"
+    ) {
       this._eventsCallback.ready();
       this._eventsCallback.ready = null;
     }
-  }
+  };
 }
 
 export default Ubidots;
