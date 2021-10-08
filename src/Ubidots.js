@@ -5,16 +5,18 @@
 class Ubidots {
   constructor() {
     this._eventsCallback = {
-      selectedDevice: null,
-      selectedDashboardDateRange: null,
-      receivedToken: null,
-      ready: null,
-      isRealTimeActive: null,
       dashboardRefreshed: null,
-      selectedDeviceObject: null,
+      isRealTimeActive: null,
+      ready: null,
+      receivedHeaders: null,
+      receivedJWTToken: null,
+      receivedToken: null,
+      selectedDashboardDateRange: null,
       selectedDashboardObject: null,
+      selectedDevice: null,
+      selectedDeviceObject: null,
     };
-
+    this._headers = {};
     window.addEventListener("message", this._listenMessage);
   }
 
@@ -94,6 +96,14 @@ class Ubidots {
     this._token = token;
   };
 
+  _setJWTToken = (jwt) => {
+    this._jwtToken = jwt;
+  };
+
+  _setHeaders = (headers = {}) => {
+    this._headers = headers;
+  };
+
   /**
    * Returns selected device in the dashboard
    * @returns {String} Id of the selected device
@@ -101,6 +111,25 @@ class Ubidots {
    */
   get selectedDevice() {
     return this._selectedDevice;
+  }
+
+  getHeaders() {
+    const headers = {
+      ...this._headers,
+      "Content-Type": "application/json",
+    };
+
+    if (this.token) {
+      headers["X-Auth-Token"] = this.token;
+    } else if (this.jwtToken) {
+      headers["Authorization"] = `Bearer ${this.jwtToken}`;
+    }
+
+    return headers;
+  }
+
+  get jwtToken() {
+    return this._jwtToken;
   }
 
   /**
@@ -229,12 +258,14 @@ class Ubidots {
       return;
 
     const eventsData = {
-      selectedDevice: this._setSelectedDevice,
-      selectedDashboardDateRange: this._setDashboardDateRange,
-      receivedToken: this._setToken,
       isRealTimeActive: this._setRealTime,
-      selectedDeviceObject: this._setDeviceObject,
+      receivedHeaders: this._setHeaders,
+      receivedJWTToken: this._setJWTToken,
+      receivedToken: this._setToken,
+      selectedDashboardDateRange: this._setDashboardDateRange,
       selectedDashboardObject: this._setDashboardObject,
+      selectedDevice: this._setSelectedDevice,
+      selectedDeviceObject: this._setDeviceObject,
     };
 
     if (Object.keys(eventsData).includes(event.data.event)) {
@@ -246,7 +277,7 @@ class Ubidots {
     }
 
     if (
-      this._token !== undefined &&
+      (this._token || this._jwtToken) &&
       this._selectedDevice !== undefined &&
       this._dashboardDateRange !== undefined &&
       this._dashboardObject !== undefined &&
