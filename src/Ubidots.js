@@ -70,7 +70,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   refreshDashboard() {
-    this._sendPostMessage({ event: "setDashboardDevice" });
+    this._sendPostMessage({ event: "refreshDashboard" });
   }
 
   /**
@@ -236,7 +236,10 @@ class Ubidots {
       selectedDeviceObject: this._setDeviceObject,
       selectedDashboardObject: this._setDashboardObject,
     };
-    eventsData[event.data.event](event.data.payload);
+
+    if (Object.keys(eventsData).includes(event.data.event)) {
+      eventsData[event.data.event](event.data.payload);
+    }
 
     if (typeof this._eventsCallback[event.data.event] === "function") {
       this._eventsCallback[event.data.event](event.data.payload);
