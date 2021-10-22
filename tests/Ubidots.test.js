@@ -268,6 +268,82 @@ describe("Array", () => {
 
       expect(spy.calledOnce).to.be.ok();
     });
+
+    it("should update the headers property", () => {
+      const ubidots = setUp();
+      global.window = { location: { origin: "http://127.0.0.1" } };
+      const today = new Date().toISOString();
+      const event = {
+        origin: "http://127.0.0.1",
+        data: {
+          event: "receivedHeaders",
+          payload: { Date: today },
+        },
+      };
+
+      ubidots._listenMessage(event);
+
+      expect(ubidots.getHeaders()).eql({
+        "Content-Type": "application/json",
+        Date: today,
+      });
+    });
+  });
+
+  describe("#getHeaders", () => {
+    it("should return an object by default", () => {
+      const ubidots = setUp();
+      expect(ubidots.getHeaders()).eql({
+        "Content-Type": "application/json",
+      });
+    });
+
+    it("should return the 'X-Auth-Token' with the token that was sended", () => {
+      global.window = {
+        location: { origin: "http://127.0.0.1" },
+        addEventListener: sinon.spy(),
+      };
+
+      const ubidots = setUp();
+      const token = "test-token";
+      const event = {
+        origin: "http://127.0.0.1",
+        data: {
+          event: "receivedToken",
+          payload: token,
+        },
+      };
+      ubidots._listenMessage(event);
+
+      expect(ubidots.getHeaders()).eql({
+        "Content-Type": "application/json",
+        "X-Auth-Token": token,
+      });
+    });
+
+    it("should return the 'Authorization' with the JWT that was sended", () => {
+      global.window = {
+        location: { origin: "http://127.0.0.1" },
+        addEventListener: sinon.spy(),
+      };
+
+      const ubidots = setUp();
+      const token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidWJpZG90cyJ9.tDp2hPvOhCzvk1Wf1wjUMaocGkZq-tHQptxfKH4Drow";
+      const event = {
+        origin: "http://127.0.0.1",
+        data: {
+          event: "receivedJWTToken",
+          payload: token,
+        },
+      };
+      ubidots._listenMessage(event);
+
+      expect(ubidots.getHeaders()).eql({
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      });
+    });
   });
 
   describe("#realTime", () => {
