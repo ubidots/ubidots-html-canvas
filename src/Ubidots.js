@@ -20,6 +20,15 @@ class Ubidots {
     window.addEventListener("message", this._listenMessage);
   }
 
+  _emitReceivedHeaders() {
+    const event = {
+      data: { event: "receivedHeaders", payload: this.getHeaders() },
+      origin: window.location.origin,
+    };
+
+    this._listenMessage(event);
+  }
+
   /**
    * Send a post Message
    * @param {Object}
@@ -94,10 +103,12 @@ class Ubidots {
    */
   _setToken = (token) => {
     this._token = token;
+    this._emitReceivedHeaders();
   };
 
   _setJWTToken = (jwt) => {
     this._jwtToken = jwt;
+    this._emitReceivedHeaders();
   };
 
   _setHeaders = (headers = {}) => {
