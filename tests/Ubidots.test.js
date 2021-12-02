@@ -403,4 +403,44 @@ describe("Array", () => {
       expect(obj.dashboardObject).to.be(dashboardObject);
     });
   });
+
+  describe("#_emitReceivedHeaders", () => {
+    it("should be called when the token changes", () => {
+      global.window = {
+        location: { origin: "http://127.0.0.1" },
+        addEventListener: sinon.spy(),
+      };
+
+      const ubidots = setUp();
+      const spy = sinon.fake();
+      ubidots.on("receivedHeaders", spy);
+
+      const event = {
+        data: { event: "receivedToken", payload: "a1n2g3e4l5o" },
+        origin: "http://127.0.0.1",
+      };
+
+      ubidots._listenMessage(event);
+      expect(spy.calledWith(ubidots.getHeaders())).to.be.ok();
+    });
+
+    it("should be called when jwt changes", () => {
+      global.window = {
+        location: { origin: "http://127.0.0.1" },
+        addEventListener: sinon.spy(),
+      };
+
+      const ubidots = setUp();
+      const spy = sinon.fake();
+      ubidots.on("receivedHeaders", spy);
+
+      const event = {
+        data: { event: "receivedJWTToken", payload: "a1n2g3e4l5o" },
+        origin: "http://127.0.0.1",
+      };
+
+      ubidots._listenMessage(event);
+      expect(spy.calledWith(ubidots.getHeaders())).to.be.ok();
+    });
+  });
 });
