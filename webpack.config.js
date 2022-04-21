@@ -1,24 +1,22 @@
-var path = require('path');
-var webpack = require('webpack');
+const path = require("path");
 
 module.exports = {
-  entry: './src/Ubidots.js',
+  entry: "./src/Ubidots.js",
   output: {
-    path: path.resolve(__dirname, 'build'),
-    filename: 'ubidots-html-canvas.js',
-    library: 'Ubidots',
-    libraryTarget: 'umd',
-    libraryExport: 'default',
+    path: path.resolve(__dirname, "build"),
+    filename: "ubidots-html-canvas.js",
+    library: "Ubidots",
+    libraryTarget: "umd",
+    libraryExport: "default",
   },
+  resolve: { extensions: [".js"] },
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['@babel/preset-env'],
-          plugins: ['@babel/plugin-proposal-class-properties']
+        use: {
+          loader: "babel-loader",
         },
       },
     ],
@@ -26,5 +24,5 @@ module.exports = {
   stats: {
     colors: true,
   },
-  devtool: 'source-map',
+  devtool: "source-map",
 };
