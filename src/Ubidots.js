@@ -76,6 +76,18 @@ class Ubidots {
   }
 
   /**
+   * Set FullScreen
+   * @param {String} fullScreenAction
+   * @memberOf Ubidots
+   */
+  setFullScreen(fullScreenAction) {
+    this._sendPostMessage({
+      event: "setFullScreen",
+      payload: fullScreenAction,
+    });
+  }
+
+  /**
    * Returns the token of the user.
    * @returns {String} Token of the user.
    *
