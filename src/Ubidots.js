@@ -1,8 +1,11 @@
+import { Widget } from './Widget';
+
 /**
  * Create a listener to be able to listen to the Ubidots messages.
  * @class Ubidots
  */
 class Ubidots {
+  
   constructor() {
     this._eventsCallback = {
       dashboardRefreshed: null,
@@ -17,6 +20,7 @@ class Ubidots {
       selectedDeviceObject: null,
     };
     this._headers = {};
+    this.widget = new Widget();
     window.addEventListener("message", this._listenMessage);
   }
 
@@ -98,13 +102,41 @@ class Ubidots {
   }
 
   /**
+   * Insert the widget sepecific settings from the Plugin Widget
+   *
+   */
+  getWidget() {
+    return this.widget;
+  }
+
+  /**
+   * Returns the header object
+   */
+  get getHeader() {
+    const headers = {
+      'Content-type': 'application/json',
+    };
+
+    if (this._jwttoken) {
+      headers['Authorization'] = `Bearer ${this._jwttoken}`;
+      return headers;
+    }
+
+    if (this._token) {
+      headers['X-Auth-Token'] = this._token;
+    }
+
+    return headers;
+  }
+
+  /**
    * Set the token value
    * @param {String} token - token of the user
    *
    * @private
    * @memberOf Ubidots
    */
-  _setToken = (token) => {
+  _setToken = token => {
     this._token = token;
   };
 
@@ -151,7 +183,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _setSelectedDevice = (selectedDevice) => {
+  _setSelectedDevice = selectedDevice => {
     this._selectedDevice = selectedDevice;
   };
 
@@ -176,7 +208,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _setDashboardDateRange = (dashboardDateRange) => {
+  _setDashboardDateRange = dashboardDateRange => {
     this._dashboardDateRange = dashboardDateRange;
   };
 

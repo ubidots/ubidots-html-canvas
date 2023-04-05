@@ -403,4 +403,26 @@ describe("Array", () => {
       expect(obj.dashboardObject).to.be(dashboardObject);
     });
   });
+
+  describe('Widget',()=>{
+    it('Should create the widget with default settings when no plugin variable defined in the window', () => {
+      const ubidots = new Ubidots();
+
+      const widget = ubidots.getWidget();
+
+      expect(widget).empty();
+    });
+
+    it('Should create the widget with default settings when no plugin variable defined in the window', () => {
+      window._pluginWidgetSettings = {
+        keyTest: 'Test',
+      };
+
+      const ubidots = new Ubidots();
+
+      const widget = ubidots.getWidget();
+      console.log('widget :', widget);
+      expect(widget.getSettings().keyTest).to.equal('Test');
+    })
+  })
 });
