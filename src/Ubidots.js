@@ -1,8 +1,11 @@
+import { Widget } from './Widget';
+
 /**
  * Create a listener to be able to listen to the Ubidots messages.
  * @class Ubidots
  */
 class Ubidots {
+  
   constructor() {
     this._eventsCallback = {
       selectedDevice: null,
@@ -10,6 +13,8 @@ class Ubidots {
       receivedToken: null,
       ready: null,
     };
+
+    this.widget = new Widget();
 
     window.addEventListener('message', this._listenMessage);
   }
@@ -25,15 +30,43 @@ class Ubidots {
   }
 
   /**
+   * Insert the widget sepecific settings from the Plugin Widget
+   *
+   */
+  getWidget() {
+    return this.widget;
+  }
+
+  /**
+   * Returns the header object
+   */
+  get getHeader() {
+    const headers = {
+      'Content-type': 'application/json',
+    };
+
+    if (this._jwttoken) {
+      headers['Authorization'] = `Bearer ${this._jwttoken}`;
+      return headers;
+    }
+
+    if (this._token) {
+      headers['X-Auth-Token'] = this._token;
+    }
+
+    return headers;
+  }
+
+  /**
    * Set the token value
    * @param {String} token - token of the user
    *
    * @private
    * @memberOf Ubidots
    */
-  _setToken = (token) => {
+  _setToken = token => {
     this._token = token;
-  }
+  };
 
   /**
    * Returns selected device in the dashboard
@@ -51,9 +84,9 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _setSelectedDevice = (selectedDevice) => {
+  _setSelectedDevice = selectedDevice => {
     this._selectedDevice = selectedDevice;
-  }
+  };
 
   /**
    * Returns selected date range in the dashboard
@@ -76,9 +109,9 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _setDashboardDateRange = (dashboardDateRange) => {
+  _setDashboardDateRange = dashboardDateRange => {
     this._dashboardDateRange = dashboardDateRange;
-  }
+  };
 
   /**
    * Make a window listener event to receive dashboard messages
@@ -91,7 +124,7 @@ class Ubidots {
     if (Object.keys(this._eventsCallback).includes(eventName)) {
       this._eventsCallback[eventName] = callback;
     }
-  }
+  };
 
   /**
    * Make a window listener event to receive dashboard messages and set data values to class attributes
@@ -101,8 +134,9 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _listenMessage = (event) => {
-    if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event)) return;
+  _listenMessage = event => {
+    if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event))
+      return;
 
     const eventsData = {
       selectedDevice: this._setSelectedDevice,
@@ -115,11 +149,16 @@ class Ubidots {
       this._eventsCallback[event.data.event](event.data.payload);
     }
 
-    if (this._token !== undefined && this._selectedDevice !== undefined && this._dashboardDateRange !== undefined && typeof this._eventsCallback.ready === 'function') {
+    if (
+      this._token !== undefined &&
+      this._selectedDevice !== undefined &&
+      this._dashboardDateRange !== undefined &&
+      typeof this._eventsCallback.ready === 'function'
+    ) {
       this._eventsCallback.ready();
       this._eventsCallback.ready = null;
     }
-  }
+  };
 }
 
 export default Ubidots;

@@ -8,7 +8,7 @@ describe('Array', () => {
     const ubidots = new Ubidots();
 
     return ubidots;
-  }
+  };
 
   afterEach(() => {
     global.window = lastWindow;
@@ -39,7 +39,7 @@ describe('Array', () => {
       const obj = setUp();
 
       const token = 'token-test-fdghjkj24y35oi45tf6g45hvbjhk';
-      obj._setToken(token)
+      obj._setToken(token);
 
       expect(obj.token).to.be(token);
     });
@@ -55,7 +55,7 @@ describe('Array', () => {
       const obj = setUp();
 
       const selectedDevice = 'fdghjkj24y35oi45tf6g45hvbjhk';
-      obj._setSelectedDevice(selectedDevice)
+      obj._setSelectedDevice(selectedDevice);
 
       expect(obj.selectedDevice).to.be(selectedDevice);
     });
@@ -71,7 +71,7 @@ describe('Array', () => {
       const obj = setUp();
 
       const dashboardDateRange = { start: 2345678904567, end: 2345678934567 };
-      obj._setDashboardDateRange(dashboardDateRange)
+      obj._setDashboardDateRange(dashboardDateRange);
 
       expect(typeof obj.dashboardDateRange).to.be('object');
       expect(obj.dashboardDateRange.start).to.be(dashboardDateRange.start);
@@ -85,17 +85,17 @@ describe('Array', () => {
 
       obj.on('selectedDevice', () => null);
 
-      expect(typeof obj._eventsCallback.selectedDevice).to.be('function')
+      expect(typeof obj._eventsCallback.selectedDevice).to.be('function');
     });
 
-    it('Shouldn\'t update any event callback object key', () => {
+    it("Shouldn't update any event callback object key", () => {
       const obj = setUp();
 
       obj.on('fakeEvent', () => null);
 
-      expect(obj._eventsCallback.receivedToken).to.be(null)
-      expect(obj._eventsCallback.selectedDevice).to.be(null)
-      expect(obj._eventsCallback.selectedDashboardDateRange).to.be(null)
+      expect(obj._eventsCallback.receivedToken).to.be(null);
+      expect(obj._eventsCallback.selectedDevice).to.be(null);
+      expect(obj._eventsCallback.selectedDashboardDateRange).to.be(null);
     });
   });
 
@@ -176,7 +176,7 @@ describe('Array', () => {
       expect(obj.token).to.be(token);
     });
 
-    it('should update the dashboard date range value and doesn\'t call any callback function', () => {
+    it("should update the dashboard date range value and doesn't call any callback function", () => {
       const obj = setUp();
       global.window = { location: { origin: 'http://127.0.0.1' } };
 
@@ -262,6 +262,26 @@ describe('Array', () => {
       }
 
       expect(spy.calledOnce).to.be.ok();
+    });
+
+    it('Should create the widget with default settings when no plugin variable defined in the window', () => {
+      const ubidots = new Ubidots();
+
+      const widget = ubidots.getWidget();
+
+      expect(widget).empty();
+    });
+
+    it('Should create the widget with default settings when no plugin variable defined in the window', () => {
+      window._pluginWidgetSettings = {
+        keyTest: 'Test',
+      };
+
+      const ubidots = new Ubidots();
+
+      const widget = ubidots.getWidget();
+      console.log('widget :', widget);
+      expect(widget.getSettings().keyTest).to.equal('Test');
     });
   });
 });
