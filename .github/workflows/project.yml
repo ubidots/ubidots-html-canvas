@@ -38,7 +38,7 @@ jobs:
         npm run unit:all
         
     - name: Build
-      run: |
+      run:
         npm install
         npm run build
         
