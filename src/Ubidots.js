@@ -49,6 +49,15 @@ class Ubidots {
   }
 
   /**
+ * Set Multiple Dashboard Devices
+ * @param {Array<String>} deviceIds - An array of device ids
+ * @memberOf Ubidots
+ */
+  setDashboardMultipleDevices(deviceIds) {
+    this._sendPostMessage({ event: "setDashboardMultipleDevices", payload: deviceIds });
+  }
+
+  /**
    * Set Dashboard Data Range
    * @param {Object}
    * @property {number} start - Initial selected date
