@@ -21,21 +21,20 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run:  npm install
     
     - name: Lint
-      run: npm install && npm run lint
+      run:  npm run lint
         
     - name: Format
       run:  npm run format:check
 
     - name: Tests
-      run: 
-        npm install
-        npm run unit:all
+      run:  npm run unit:all
         
     - name: Build
-      run:
-        npm install
-        npm run build
+      run:  npm run build
         
 
