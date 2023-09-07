@@ -5,7 +5,6 @@ import { Widget } from './Widget';
  * @class Ubidots
  */
 class Ubidots {
-  
   constructor() {
     this._eventsCallback = {
       dashboardRefreshed: null,
@@ -21,7 +20,7 @@ class Ubidots {
     };
     this._headers = {};
     this.widget = new Widget();
-    window.addEventListener("message", this._listenMessage);
+    window.addEventListener('message', this._listenMessage);
   }
 
   /**
@@ -32,11 +31,9 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
+  // eslint-disable-next-line class-methods-use-this
   _sendPostMessage({ event, payload }) {
-    window.parent.postMessage(
-      { event: event, payload: payload },
-      window.location.origin
-    );
+    window.parent.postMessage({ event: event, payload: payload }, window.location.origin);
   }
 
   /**
@@ -45,16 +42,16 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setDashboardDevice(deviceId) {
-    this._sendPostMessage({ event: "setDashboardDevice", payload: deviceId });
+    this._sendPostMessage({ event: 'setDashboardDevice', payload: deviceId });
   }
 
   /**
- * Set Multiple Dashboard Devices
- * @param {Array<String>} deviceIds - An array of device ids
- * @memberOf Ubidots
- */
+   * Set Multiple Dashboard Devices
+   * @param {Array<String>} deviceIds - An array of device ids
+   * @memberOf Ubidots
+   */
   setDashboardMultipleDevices(deviceIds) {
-    this._sendPostMessage({ event: "setDashboardMultipleDevices", payload: deviceIds });
+    this._sendPostMessage({ event: 'setDashboardMultipleDevices', payload: deviceIds });
   }
 
   /**
@@ -66,7 +63,7 @@ class Ubidots {
    */
   setDashboardDateRange(range) {
     this._sendPostMessage({
-      event: "setDashboardDateRange",
+      event: 'setDashboardDateRange',
       payload: range,
     });
   }
@@ -77,7 +74,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setRealTime(enableRealTime) {
-    this._sendPostMessage({ event: "setRealTime", payload: enableRealTime });
+    this._sendPostMessage({ event: 'setRealTime', payload: enableRealTime });
   }
 
   /**
@@ -85,7 +82,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   refreshDashboard() {
-    this._sendPostMessage({ event: "refreshDashboard" });
+    this._sendPostMessage({ event: 'refreshDashboard' });
   }
 
   /**
@@ -95,7 +92,7 @@ class Ubidots {
    */
   setFullScreen(fullScreenAction) {
     this._sendPostMessage({
-      event: "setFullScreen",
+      event: 'setFullScreen',
       payload: fullScreenAction,
     });
   }
@@ -149,7 +146,7 @@ class Ubidots {
     this._token = token;
   };
 
-  _setJWTToken = (jwt) => {
+  _setJWTToken = jwt => {
     this._jwtToken = jwt;
   };
 
@@ -169,13 +166,13 @@ class Ubidots {
   getHeaders() {
     const headers = {
       ...this._headers,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
     if (this.token) {
-      headers["X-Auth-Token"] = this.token;
+      headers['X-Auth-Token'] = this.token;
     } else if (this.jwtToken) {
-      headers["Authorization"] = `Bearer ${this.jwtToken}`;
+      headers['Authorization'] = `Bearer ${this.jwtToken}`;
     }
 
     return headers;
@@ -238,7 +235,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _setRealTime = (realTime) => {
+  _setRealTime = realTime => {
     this._realTime = realTime;
   };
 
@@ -259,7 +256,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _setDeviceObject = (deviceObject) => {
+  _setDeviceObject = deviceObject => {
     this._deviceObject = deviceObject;
   };
   /**
@@ -279,7 +276,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _setDashboardObject = (dashboardObject) => {
+  _setDashboardObject = dashboardObject => {
     this._dashboardObject = dashboardObject;
   };
   /**
@@ -303,11 +300,8 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _listenMessage = (event) => {
-    if (
-      event.origin !== window.location.origin ||
-      !Object.keys(this._eventsCallback).includes(event.data.event)
-    )
+  _listenMessage = event => {
+    if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event))
       return;
 
     const eventsData = {
@@ -325,7 +319,7 @@ class Ubidots {
       eventsData[event.data.event](event.data.payload);
     }
 
-    if (typeof this._eventsCallback[event.data.event] === "function") {
+    if (typeof this._eventsCallback[event.data.event] === 'function') {
       this._eventsCallback[event.data.event](event.data.payload);
     }
 
@@ -334,7 +328,7 @@ class Ubidots {
       this._selectedDevice !== undefined &&
       this._dashboardDateRange !== undefined &&
       this._dashboardObject !== undefined &&
-      typeof this._eventsCallback.ready === "function"
+      typeof this._eventsCallback.ready === 'function'
     ) {
       this._eventsCallback.ready();
       this._eventsCallback.ready = null;
