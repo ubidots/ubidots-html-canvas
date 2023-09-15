@@ -10,6 +10,7 @@ module.exports = {
     libraryExport: "default",
   },
   resolve: { extensions: [".js"] },
+  mode: "production",
   module: {
     rules: [
       {
