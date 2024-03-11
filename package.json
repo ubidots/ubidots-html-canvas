@@ -21,8 +21,8 @@
   "devDependencies": {
     "@babel/core": "7.22.19",
     "@babel/eslint-parser": "7.22.15",
-    "@babel/preset-env": "7.22.15",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/preset-env": "7.22.15",
     "@babel/register": "7.22.15",
     "babel-loader": "9.1.3",
     "eslint": "8.49.0",
@@ -34,5 +34,8 @@
     "sinon": "16.0.0",
     "webpack": "5.88.2",
     "webpack-cli": "5.1.4"
+  },
+  "dependencies": {
+    "@ubidots/ubidots-javascript-library": "^1.0.2"
   }
 }

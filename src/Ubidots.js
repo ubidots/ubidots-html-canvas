@@ -1,4 +1,5 @@
 import { Widget } from './Widget';
+import { Ubidots as UJL } from '@ubidots/ubidots-javascript-library';
 
 /**
  * Create a listener to be able to listen to the Ubidots messages.
@@ -20,6 +21,7 @@ class Ubidots {
     };
     this._headers = {};
     this.widget = new Widget();
+    this.api = UJL;
     window.addEventListener('message', this._listenMessage);
   }
 
