@@ -18,6 +18,8 @@ class Ubidots {
       selectedDashboardObject: null,
       selectedDevice: null,
       selectedDeviceObject: null,
+      selectedDevices: null,
+      selectedDeviceObjects: null,
     };
     this._headers = {};
     this.widget = new Widget();
@@ -165,6 +167,15 @@ class Ubidots {
     return this._selectedDevice;
   }
 
+  /**
+   * Gets the selected devices.
+   *
+   * @returns {Array} The selected devices.
+   */
+  get selectedDevices() {
+    return this._selectedDevices;
+  }
+
   getHeaders() {
     const headers = {
       ...this._headers,
@@ -193,6 +204,15 @@ class Ubidots {
    */
   _setSelectedDevice = selectedDevice => {
     this._selectedDevice = selectedDevice;
+  };
+
+  /**
+   * Sets the selected devices.
+   *
+   * @param {Array} deviceIdsArray - An array of device IDs.
+   */
+  _setSelectedDevices = deviceIdsArray => {
+    this._selectedDevices = deviceIdsArray;
   };
 
   /**
@@ -261,6 +281,24 @@ class Ubidots {
   _setDeviceObject = deviceObject => {
     this._deviceObject = deviceObject;
   };
+
+  /**
+   * Get the selected device objects.
+   * @returns {Array} The selected device objects.
+   */
+  get selectedDeviceObjects() {
+    return this._selectedDeviceObjects;
+  }
+
+  /**
+   * Sets the selected device objects.
+   *
+   * @param {Array} selectedDeviceObjectsList - The list of selected device objects.
+   */
+  _setSelectedDeviceObjects = selectedDeviceObjectsList => {
+    this._selectedDeviceObjects = selectedDeviceObjectsList;
+  };
+
   /**
    * Returns the dashboardObject.
    * @returns {Object} dashboardObject.
@@ -315,6 +353,8 @@ class Ubidots {
       selectedDashboardObject: this._setDashboardObject,
       selectedDevice: this._setSelectedDevice,
       selectedDeviceObject: this._setDeviceObject,
+      selectedDevices: this._setSelectedDevices,
+      selectedDeviceObjects: this._setSelectedDeviceObjects,
     };
 
     if (Object.keys(eventsData).includes(event.data.event)) {
