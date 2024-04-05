@@ -61,6 +61,21 @@ describe("Array", () => {
     });
   });
 
+  describe('#selectedDevices', () => {
+    it('should be undefined', () => {
+      const obj = setUp();
+      expect(obj.selectedDevices).to.be.undefined; // O expect(obj.selectedDevices).to.deep.equal([]);
+    });
+
+    it('should be an array of device IDs', () => {
+      const obj = setUp();
+
+      const selectedDevices = ['fdghjkj24y35oi45tf6g45hvbjhk', 'device2Id', 'device3Id'];
+      obj._setSelectedDevices(selectedDevices);
+      expect(obj.selectedDevices).to.be(selectedDevices);
+    });
+  });
+
   describe("#dashboardDateRange", () => {
     it("should be undefined", () => {
       const obj = setUp();
@@ -383,6 +398,26 @@ describe("Array", () => {
 
       expect(obj.deviceObject).to.be(deviceObject);
     });
+  });
+
+  describe("#deviceObjects", () => {
+    it("should be undefined", () => {
+      const obj = setUp();
+      expect(obj.selectedDeviceObjects).to.be(undefined);
+    });
+
+    it("should be an array of objects", () => {
+      const obj = setUp();
+
+      const deviceObjects = [
+        { name: "device name", label: "device-label" },
+        { name: "device name 2", label: "device-label 2" },
+      ];
+      obj._setSelectedDeviceObjects(deviceObjects);
+
+      expect(obj.selectedDeviceObjects).to.be(deviceObjects);
+    }
+    );
   });
 
   describe("#dashboardObject", () => {
