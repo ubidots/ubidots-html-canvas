@@ -102,6 +102,17 @@ class Ubidots {
   }
 
   /**
+   * Open Drawer
+   * @param {Object} drawerInfo
+   * @property {String} url - url to open in the drawer
+   * @property {Number} width - drawer's width
+   * @memberOf Ubidots
+   */
+  openDrawer(drawerInfo) {
+    this._sendPostMessage({ event: 'openDrawer', payload: drawerInfo });
+  }
+
+  /**
    * Returns the token of the user.
    * @returns {String} Token of the user.
    *
