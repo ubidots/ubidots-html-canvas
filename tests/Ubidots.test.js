@@ -76,6 +76,22 @@ describe("Array", () => {
     });
   });
 
+  describe("#selectedFilters", () => {
+    it("should be undefined", () => {
+      const obj = setUp();
+      expect(obj.selectedFilters).to.be(undefined);
+    });
+
+    it("should be an object", () => {
+      const obj = setUp();
+
+      const selectedFilters = { key: "value" };
+      obj._setSelectedFilters(selectedFilters);
+
+      expect(obj.selectedFilters).to.be(selectedFilters);
+    });
+  });
+
   describe("#dashboardDateRange", () => {
     it("should be undefined", () => {
       const obj = setUp();
