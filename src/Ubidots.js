@@ -385,6 +385,7 @@ class Ubidots {
       selectedDeviceObject: this._setDeviceObject,
       selectedDevices: this._setSelectedDevices,
       selectedDeviceObjects: this._setSelectedDeviceObjects,
+      selectedFilters: this._setSelectedFilters,
     };
 
     if (Object.keys(eventsData).includes(event.data.event)) {
