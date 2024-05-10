@@ -20,6 +20,7 @@ class Ubidots {
       selectedDeviceObject: null,
       selectedDevices: null,
       selectedDeviceObjects: null,
+      selectedFilters: null,
     };
     this._headers = {};
     this.widget = new Widget();
@@ -329,6 +330,24 @@ class Ubidots {
    */
   _setDashboardObject = dashboardObject => {
     this._dashboardObject = dashboardObject;
+  };
+
+  /**
+   * Get the selected filters.
+   *
+   * @returns {Array} The selected filters.
+   */
+  get selectedFilters() {
+    return this._selectedFilters;
+  }
+
+  /**
+   * Sets the selected filters for the Ubidots class.
+   *
+   * @param {Array} selectedFilters - The selected filters to be set.
+   */
+  _setSelectedFilters = selectedFilters => {
+    this._selectedFilters = selectedFilters;
   };
   /**
    * Make a window listener event to receive dashboard messages
