@@ -25,4 +25,11 @@ describe('Widget Tests', () => {
 
     expect(settings.keyTest).to.equal('Test');
   });
+
+  it('The widget should receive the widget id through the constructor and get accessed through the interface', () => {
+    const widget = new Widget('testId');
+    const id = widget.getId();
+
+    expect(id).to.equal('testId');
+  });
 });
