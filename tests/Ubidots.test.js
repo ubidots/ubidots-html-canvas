@@ -472,8 +472,17 @@ describe("Array", () => {
       const ubidots = new Ubidots();
 
       const widget = ubidots.getWidget();
-      console.log('widget :', widget);
       expect(widget.getSettings().keyTest).to.equal('Test');
     })
+
+    it('The widget should receive the widget id through the constructor and get accessed through the interface when Ubidots is created and the id comes from the window.widgetId variable', () => {
+      global.window.widgetId = 'windowTestId';
+      const ubidots = new Ubidots();
+      const widget = ubidots.getWidget();
+      const id = widget.getId();
+
+      expect(id).to.equal('windowTestId');
+      delete global.window.widgetId;
+    });
   })
 });

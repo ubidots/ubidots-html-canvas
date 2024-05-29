@@ -23,7 +23,7 @@ class Ubidots {
       selectedFilters: null,
     };
     this._headers = {};
-    this.widget = new Widget();
+    this.widget = new Widget(window.widgetId);
     this.api = UJL;
     window.addEventListener('message', this._listenMessage);
   }
@@ -110,7 +110,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   openDrawer(drawerInfo) {
-    this._sendPostMessage({ event: 'openDrawer', payload: drawerInfo });
+    this._sendPostMessage({ event: 'openDrawer', payload: { drawerInfo, id: this.widget.getId() } });
   }
 
   /**
