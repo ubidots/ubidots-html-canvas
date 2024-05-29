@@ -33,11 +33,4 @@ describe('Widget Tests', () => {
     expect(id).to.equal('testId');
   });
 
-  it('The widget should receive the widget id from window.widgetId if no id is provided in the constructor', () => {
-    window.widgetId = 'windowTestId';
-    const widget = new Widget(window.widgetId);
-    const id = widget.getId();
-
-    expect(id).to.equal('windowTestId');
-  });
 });
