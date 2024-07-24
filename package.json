@@ -36,6 +36,6 @@
     "webpack-cli": "5.1.4"
   },
   "dependencies": {
-    "@ubidots/ubidots-javascript-library": "^1.0.2"
+    "@ubidots/ubidots-javascript-library": "^1.1.1"
   }
 }
