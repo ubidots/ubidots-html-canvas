@@ -1,6 +1,26 @@
 import { Widget } from './Widget';
 import { Ubidots as UJL } from '@ubidots/ubidots-javascript-library';
 
+const EventsTypes = {
+  IS_REALTIME_ACTIVE: 'isRealTimeActive',
+  OPEN_DRAWER: 'openDrawer',
+  RECEIVED_HEADERS: 'receivedHeaders',
+  RECEIVED_JWT_TOKEN: 'receivedJWTToken',
+  RECEIVED_TOKEN: 'receivedToken',
+  REFRESH_DASHBOARD: 'refreshDashboard',
+  SELECTED_DASHBOARD_DATE_RANGE: 'selectedDashboardDateRange',
+  SELECTED_DASHBOARD_OBJECT: 'selectedDashboardObject',
+  SELECTED_DEVICE: 'selectedDevice',
+  SELECTED_DEVICES: 'selectedDevices',
+  SELECTED_DEVICE_OBJECT: 'selectedDeviceObject',
+  SELECTED_DEVICE_OBJECTS: 'selectedDeviceObjects',
+  SET_DASHBOARD_DATE_RANGE: 'setDashboardDateRange',
+  SET_DASHBOARD_DEVICE: 'setDashboardDevice',
+  SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
+  SET_FULL_SCREEN: 'setFullScreen',
+  SET_REAL_TIME: 'setRealTime',
+};
+
 /**
  * Create a listener to be able to listen to the Ubidots messages.
  * @class Ubidots
@@ -47,7 +67,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setDashboardDevice(deviceId) {
-    this._sendPostMessage({ event: 'setDashboardDevice', payload: deviceId });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DEVICE, payload: deviceId });
   }
 
   /**
@@ -56,7 +76,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setDashboardMultipleDevices(deviceIds) {
-    this._sendPostMessage({ event: 'setDashboardMultipleDevices', payload: deviceIds });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_MULTIPLE_DEVICES, payload: deviceIds });
   }
 
   /**
@@ -67,10 +87,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setDashboardDateRange(range) {
-    this._sendPostMessage({
-      event: 'setDashboardDateRange',
-      payload: range,
-    });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DATE_RANGE, payload: range });
   }
 
   /**
@@ -79,7 +96,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setRealTime(enableRealTime) {
-    this._sendPostMessage({ event: 'setRealTime', payload: enableRealTime });
+    this._sendPostMessage({ event: EventsTypes.SET_REAL_TIME, payload: enableRealTime });
   }
 
   /**
@@ -87,7 +104,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   refreshDashboard() {
-    this._sendPostMessage({ event: 'refreshDashboard' });
+    this._sendPostMessage({ event: EventsTypes.REFRESH_DASHBOARD });
   }
 
   /**
@@ -96,10 +113,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setFullScreen(fullScreenAction) {
-    this._sendPostMessage({
-      event: 'setFullScreen',
-      payload: fullScreenAction,
-    });
+    this._sendPostMessage({ event: EventsTypes.SET_FULL_SCREEN, payload: fullScreenAction });
   }
 
   /**
@@ -110,7 +124,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   openDrawer(drawerInfo) {
-    this._sendPostMessage({ event: 'openDrawer', payload: { drawerInfo, id: this.widget.getId() } });
+    this._sendPostMessage({ event: EventsTypes.OPEN_DRAWER, payload: { drawerInfo, id: this.widget.getId() } });
   }
 
   /**
@@ -356,7 +370,7 @@ class Ubidots {
    *
    * @memberOf Ubidots
    */
-  on = (eventName, callback = undefined) => {
+  on = (eventName, callback) => {
     if (Object.keys(this._eventsCallback).includes(eventName)) {
       this._eventsCallback[eventName] = callback;
     }
@@ -371,26 +385,25 @@ class Ubidots {
    * @memberOf Ubidots
    */
   _listenMessage = event => {
-    if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event))
-      return;
+    if (event.origin !== window.location.origin) return;
+    const { event: eventName, payload } = event.data;
 
-    const eventsData = {
-      isRealTimeActive: this._setRealTime,
-      receivedHeaders: this._setHeaders,
-      receivedJWTToken: this._setJWTToken,
-      receivedToken: this._setToken,
-      selectedDashboardDateRange: this._setDashboardDateRange,
-      selectedDashboardObject: this._setDashboardObject,
-      selectedDevice: this._setSelectedDevice,
-      selectedDeviceObject: this._setDeviceObject,
-      selectedDevices: this._setSelectedDevices,
-      selectedDeviceObjects: this._setSelectedDeviceObjects,
-      selectedFilters: this._setSelectedFilters,
+    const eventHandlers = {
+      [EventsTypes.IS_REALTIME_ACTIVE]: this._setRealTime,
+      [EventsTypes.RECEIVED_HEADERS]: this._setHeaders,
+      [EventsTypes.RECEIVED_JWT_TOKEN]: this._setJWTToken,
+      [EventsTypes.RECEIVED_TOKEN]: this._setToken,
+      [EventsTypes.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
+      [EventsTypes.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
+      [EventsTypes.SELECTED_DEVICE]: this._setSelectedDevice,
+      [EventsTypes.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
+      [EventsTypes.SELECTED_DEVICES]: this._setSelectedDevices,
+      [EventsTypes.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
+      [EventsTypes.SELECTED_FILTERS]: this._setSelectedFilters,
     };
 
-    if (Object.keys(eventsData).includes(event.data.event)) {
-      eventsData[event.data.event](event.data.payload);
-    }
+    const handler = eventHandlers[eventName];
+    if (handler) handler(payload);
 
     if (typeof this._eventsCallback[event.data.event] === 'function') {
       this._eventsCallback[event.data.event](event.data.payload);
