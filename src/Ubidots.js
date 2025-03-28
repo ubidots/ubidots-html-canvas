@@ -371,8 +371,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   _listenMessage = event => {
-    if (event.origin !== window.location.origin || !Object.keys(this._eventsCallback).includes(event.data.event))
-      return;
+    if (!Object.keys(this._eventsCallback).includes(event.data.event)) return;
 
     const eventsData = {
       isRealTimeActive: this._setRealTime,
