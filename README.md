@@ -15,6 +15,8 @@ It provide the following 'setters' methods
 
 - setDashboardDevice: Ability to set the selected device in a dynamic dashboard
 
+- setDashboardLayer: Ability to set the selected layer in a dynamic dashboard
+
 - setDashboardDateRange: Ability to set the date and time range in a dashboard, dynamic or static.
 
 - setRealTime: Ability to turn on or off the dashboard read time update
