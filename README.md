@@ -23,6 +23,8 @@ It provide the following 'setters' methods
 
 ## Usage
 
+This library is intended for the ubidots development team to mantain and extend the capabilities of the HTML Canvas widget.
+
 If you want to use this library in your Ubidots' HTML Canvas, you can read the following article in our help center.
 
 [HTML Canvas: Interacting with account data](https://help.ubidots.com/en/articles/2508317-html-canvas-interacting-with-account-data)
@@ -46,6 +48,14 @@ You must now have folder called `build/` in the projects' root folder which cont
 
 - `ubidots-html-canvas.js`
 - `ubidots-html-canvas.js.map`
+
+This files should be deployed into a location accessible to the backend so that they are accessible for the HTML Canvas widgets.
+
+### Development server
+
+For local development when integrated to an ubidots test environment, it may be useful to run the development server.
+
+In order to do so, you can use `yarn serve`; the library will be served at http://localhost:9100/ 
 
 ### Run tests
 
