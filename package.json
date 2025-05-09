@@ -5,6 +5,8 @@
   "scripts": {
     "babel": "babel src/Ubidots.js -o build/ubidots-html-canvas.js",
     "build": "webpack",
+    "dev": "webpack --watch --mode=development",
+    "serve": "webpack serve --mode=development --open",
     "unit:all": "mocha --require @babel/register -r jsdom-global/register --recursive './tests/*.js'",
     "unit": "mocha --require @babel/register -r jsdom-global/register ",
     "format": "prettier --config .prettierrc --write src/**/*",
@@ -33,7 +35,8 @@
     "prettier": "3.0.3",
     "sinon": "16.0.0",
     "webpack": "5.88.2",
-    "webpack-cli": "5.1.4"
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "^4.15.2"
   },
   "dependencies": {
     "@ubidots/ubidots-javascript-library": "^1.1.1"

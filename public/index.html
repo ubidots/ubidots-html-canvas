@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubidots HTML Canvas Dev Server</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h1 {
+            color: #333;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+        .example {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ubidots HTML Canvas Development Server</h1>
+        <p>This is a development server for the Ubidots HTML Canvas library. You can use this to test your widgets during development.</p>
+        
+        <h2>How to Use</h2>
+        <p>Include the library in your HTML:</p>
+        <pre>&lt;script src="http://localhost:9000/ubidots-html-canvas.js"&gt;&lt;/script&gt;</pre>
+        
+        <div class="example">
+            <h3>Example Widget</h3>
+            <div id="widget-container"></div>
+            <script>
+                // This will be populated when the library is loaded
+                document.addEventListener('DOMContentLoaded', () => {
+                    const container = document.getElementById('widget-container');
+                    container.innerHTML = '<p>Library loaded successfully!</p>';
+                    
+                    // Check if Ubidots is available
+                    if (typeof Ubidots !== 'undefined') {
+                        container.innerHTML += '<p>Ubidots class is available.</p>';
+                        
+                        try {
+                            // Create an instance
+                            const ubidots = new Ubidots();
+                            container.innerHTML += '<p>Ubidots instance created successfully.</p>';
+                        } catch (error) {
+                            container.innerHTML += `<p>Error creating Ubidots instance: ${error.message}</p>`;
+                        }
+                    } else {
+                        container.innerHTML += '<p>Ubidots class is not available. Make sure the library is loaded correctly.</p>';
+                    }
+                });
+            </script>
+        </div>
+    </div>
+    
+    <!-- Load the library -->
+    <script src="/ubidots-html-canvas.js"></script>
+</body>
+</html>
