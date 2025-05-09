@@ -43,7 +43,7 @@ class Ubidots {
 
   /**
    * Set Dashboard Device
-   * @param {String} deviceId - Device id
+   * @param {String} deviceId - Numeric device id or API label (starting with ~)
    * @memberOf Ubidots
    */
   setDashboardDevice(deviceId) {
