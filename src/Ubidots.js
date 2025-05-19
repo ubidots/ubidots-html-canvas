@@ -80,6 +80,15 @@ class Ubidots {
   }
 
   /**
+   * Set Dashboard Layer
+   * @param {String} layerId - Layer id
+   * @memberOf Ubidots
+   */
+  setDashboardLayer(layerId) {
+    this._sendPostMessage({ event: 'setDashboardLayer', payload: layerId });
+  }
+
+  /**
    * Set Dashboard Data Range
    * @param {Object}
    * @property {number} start - Initial selected date
