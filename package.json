@@ -1,6 +1,6 @@
 {
   "name": "ubidots-html-canvas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Ubidots HTML canvas post message library",
   "scripts": {
     "babel": "babel src/Ubidots.js -o build/ubidots-html-canvas.js",
@@ -39,6 +39,6 @@
     "webpack-dev-server": "^4.15.2"
   },
   "dependencies": {
-    "@ubidots/ubidots-javascript-library": "^1.1.1"
+    "@ubidots/ubidots-javascript-library": "^1.2.1"
   }
 }
