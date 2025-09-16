@@ -164,7 +164,7 @@ describe('Widget Tests', () => {
 
       expect(json).toEqual({
         id: 'test-id',
-        settings: { config: 'test' }
+        settings: { config: 'test' },
       });
     });
 

@@ -10,7 +10,7 @@
   "excludePrivate": true,
   "excludeProtected": false,
   "includeVersion": true,
-  "kindSortOrder": ["Class", "Constructor", "Property", "Method", "Interface", "Type alias", "Enum"],
+  "kindSortOrder": ["Class", "Constructor", "Property", "Method", "Interface", "TypeAlias", "Enum"],
   "navigation": {
     "includeCategories": true,
     "includeGroups": true
