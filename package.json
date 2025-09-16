@@ -5,39 +5,54 @@
   },
   "description": "Ubidots HTML canvas post message library",
   "devDependencies": {
-    "@babel/core": "7.28.4",
-    "@babel/eslint-parser": "7.28.4",
-    "@babel/plugin-transform-class-properties": "^7.27.1",
-    "@babel/preset-env": "7.28.3",
+    "@types/node": "^24.5.0",
     "@vitest/ui": "3.2.4",
-    "babel-loader": "10.0.0",
     "eslint": "9.35.0",
     "jsdom": "27.0.0",
     "prettier": "3.6.2",
-    "vitest": "3.2.4",
-    "webpack": "5.101.3",
-    "webpack-cli": "6.0.1",
-    "webpack-dev-server": "5.2.2"
+    "tsup": "^8.5.0",
+    "typedoc": "^0.28.13",
+    "typescript": "^5.9.2",
+    "vitest": "3.2.4"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT",
-  "main": "src/ubidots.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "name": "ubidots-html-canvas",
   "repository": {
     "type": "git",
     "url": "https://github.com/ubidots/ubidots-html-canvas.git"
   },
   "scripts": {
-    "babel": "babel src/Ubidots.js -o build/ubidots-html-canvas.js",
-    "build": "webpack",
-    "dev": "webpack --watch --mode=development",
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "clean": "rm -rf dist build docs",
+    "dev": "tsup --watch",
+    "docs": "typedoc",
+    "docs:serve": "typedoc && cd docs && python -m http.server 8080",
     "format": "prettier --config .prettierrc --write src/**/*",
     "format:check": "prettier --config .prettierrc --check src/**/*",
     "lint": "eslint src/**/*",
-    "serve": "webpack serve --mode=development --open",
+    "prepublishOnly": "npm run clean && npm run typecheck && npm run test:run && npm run build",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:run": "vitest run",
-    "test:ui": "vitest --ui"
+    "test:typecheck": "vitest typecheck",
+    "test:ui": "vitest --ui",
+    "typecheck": "tsc --noEmit"
   },
+  "types": "dist/index.d.ts",
   "version": "1.1.0"
 }

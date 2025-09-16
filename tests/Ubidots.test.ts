@@ -1,9 +1,10 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Ubidots from '../src/Ubidots';
+import type { DashboardDateRange, Headers, PostMessageData } from '../src/types';
 
 describe('Ubidots', () => {
   const lastWindow = window;
-  const setUp = () => {
+  const setUp = (): Ubidots => {
     const ubidots = new Ubidots();
     return ubidots;
   };
@@ -94,10 +95,10 @@ describe('Ubidots', () => {
       expect(obj.selectedFilters).toBeUndefined();
     });
 
-    it('should be an object', () => {
+    it('should be an array of filter objects', () => {
       const obj = setUp();
 
-      const selectedFilters = { key: 'value' };
+      const selectedFilters = [{ key: 'status', value: 'active', operator: 'eq' }];
       obj._setSelectedFilters(selectedFilters);
 
       expect(obj.selectedFilters).toBe(selectedFilters);
@@ -113,7 +114,7 @@ describe('Ubidots', () => {
     it('should be an object with start and end', () => {
       const obj = setUp();
 
-      const dashboardDateRange = {
+      const dashboardDateRange: DashboardDateRange = {
         start: 908745678908756,
         end: 5678909876456,
       };
@@ -123,18 +124,18 @@ describe('Ubidots', () => {
     });
   });
 
-  describe('#_listenMessage', () => {
+  describe('#_handleMessage', () => {
     it('should update only the token value and not call any callback function', () => {
       const obj = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+      global.window = { location: { origin: 'http://127.0.0.1' } } as Window & typeof globalThis;
 
-      const event = {
+      const event: MessageEvent<PostMessageData> = {
         origin: 'http://127.0.0.1',
         data: {
           event: 'receivedToken',
           payload: 'test-token-4567d89fdg0h8bf5vc4567vd9f80gj',
         },
-      };
+      } as MessageEvent<PostMessageData>;
       obj._handleMessage(event);
 
       expect(obj.token).toBe('test-token-4567d89fdg0h8bf5vc4567vd9f80gj');
@@ -144,19 +145,19 @@ describe('Ubidots', () => {
 
     it('should update only the token value and call the callback function', () => {
       const obj = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+      global.window = { location: { origin: 'http://127.0.0.1' } } as Window & typeof globalThis;
 
       const spy = vi.fn();
       obj.on('receivedToken', spy);
 
       const token = 'test-token-4567d89fdg0h8bf5vc4567vd9f80gj';
-      const event = {
+      const event: MessageEvent<PostMessageData> = {
         origin: 'http://127.0.0.1',
         data: {
           event: 'receivedToken',
           payload: token,
         },
-      };
+      } as MessageEvent<PostMessageData>;
       obj._handleMessage(event);
 
       expect(spy).toHaveBeenCalled();
@@ -166,7 +167,7 @@ describe('Ubidots', () => {
 
     it('should support multiple callbacks for the same event using eventBus', () => {
       const obj = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+      global.window = { location: { origin: 'http://127.0.0.1' } } as Window & typeof globalThis;
 
       const spy1 = vi.fn();
       const spy2 = vi.fn();
@@ -174,13 +175,13 @@ describe('Ubidots', () => {
       obj.on('receivedToken', spy2);
 
       const token = 'test-token-multi';
-      const event = {
+      const event: MessageEvent<PostMessageData> = {
         origin: 'http://127.0.0.1',
         data: {
           event: 'receivedToken',
           payload: token,
         },
-      };
+      } as MessageEvent<PostMessageData>;
       obj._handleMessage(event);
 
       expect(spy1).toHaveBeenCalled();
@@ -191,19 +192,19 @@ describe('Ubidots', () => {
 
     it('should work with listen() method', () => {
       const obj = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+      global.window = { location: { origin: 'http://127.0.0.1' } } as Window & typeof globalThis;
 
       const spy = vi.fn();
       obj.listen('receivedToken', spy);
 
       const token = 'test-token-listen';
-      const event = {
+      const event: MessageEvent<PostMessageData> = {
         origin: 'http://127.0.0.1',
         data: {
           event: 'receivedToken',
           payload: token,
         },
-      };
+      } as MessageEvent<PostMessageData>;
       obj._handleMessage(event);
 
       expect(spy).toHaveBeenCalled();
@@ -224,19 +225,19 @@ describe('Ubidots', () => {
 
     it('should update the dashboard date range value and not call any callback function', () => {
       const obj = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+      global.window = { location: { origin: 'http://127.0.0.1' } } as Window & typeof globalThis;
 
-      const selectedDashboardDateRange = {
+      const selectedDashboardDateRange: DashboardDateRange = {
         start: 908745678908756,
         end: 5678909876456,
       };
-      const event = {
+      const event: MessageEvent<PostMessageData> = {
         origin: 'http://127.0.0.1',
         data: {
           event: 'selectedDashboardDateRange',
           payload: selectedDashboardDateRange,
         },
-      };
+      } as MessageEvent<PostMessageData>;
       obj._handleMessage(event);
 
       expect(obj.dashboardDateRange).toBe(selectedDashboardDateRange);
@@ -246,22 +247,22 @@ describe('Ubidots', () => {
 
     it('should update the dashboard date range value and call the callback function', () => {
       const obj = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+      global.window = { location: { origin: 'http://127.0.0.1' } } as Window & typeof globalThis;
 
       const spy = vi.fn();
       obj.on('selectedDashboardDateRange', spy);
 
-      const selectedDashboardDateRange = {
+      const selectedDashboardDateRange: DashboardDateRange = {
         start: 908745678908756,
         end: 5678909876456,
       };
-      const event = {
+      const event: MessageEvent<PostMessageData> = {
         origin: 'http://127.0.0.1',
         data: {
           event: 'selectedDashboardDateRange',
           payload: selectedDashboardDateRange,
         },
-      };
+      } as MessageEvent<PostMessageData>;
       obj._handleMessage(event);
 
       expect(spy).toHaveBeenCalled();
@@ -271,18 +272,18 @@ describe('Ubidots', () => {
 
     it('should not process messages from different origins', () => {
       const obj = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+      global.window = { location: { origin: 'http://127.0.0.1' } } as Window & typeof globalThis;
 
       const spy = vi.fn();
       obj.on('receivedToken', spy);
 
-      const event = {
+      const event: MessageEvent<PostMessageData> = {
         origin: 'http://malicious-site.com',
         data: {
           event: 'receivedToken',
           payload: 'malicious-token',
         },
-      };
+      } as MessageEvent<PostMessageData>;
       obj._handleMessage(event);
 
       expect(spy).not.toHaveBeenCalled();
@@ -294,7 +295,7 @@ describe('Ubidots', () => {
     it('should call window.parent.postMessage and emit event locally', () => {
       const obj = setUp();
       const postMessageSpy = vi.fn();
-      global.window.parent = { postMessage: postMessageSpy };
+      global.window.parent = { postMessage: postMessageSpy } as Window;
 
       const localSpy = vi.fn();
       obj.on('testEvent', localSpy);
@@ -345,6 +346,109 @@ describe('Ubidots', () => {
         'Content-Type': 'application/json',
         'X-Auth-Token': 'regular-token',
       });
+    });
+
+    it('should include custom headers', () => {
+      const obj = setUp();
+      const customHeaders = { 'Custom-Header': 'custom-value' };
+      obj._setHeaders(customHeaders);
+      obj._setToken('test-token');
+
+      const headers = obj.getHeaders();
+
+      expect(headers).toEqual({
+        'Custom-Header': 'custom-value',
+        'Content-Type': 'application/json',
+        'X-Auth-Token': 'test-token',
+      });
+    });
+  });
+
+  describe('#dashboard methods', () => {
+    it('should call postMessage for setDashboardDevice', () => {
+      const obj = setUp();
+      const spy = vi.spyOn(obj, 'postMessage');
+
+      obj.setDashboardDevice('device-123');
+
+      expect(spy).toHaveBeenCalledWith('setDashboardDevice', 'device-123');
+    });
+
+    it('should call postMessage for setDashboardMultipleDevices', () => {
+      const obj = setUp();
+      const spy = vi.spyOn(obj, 'postMessage');
+      const deviceIds = ['device-1', 'device-2'];
+
+      obj.setDashboardMultipleDevices(deviceIds);
+
+      expect(spy).toHaveBeenCalledWith('setDashboardMultipleDevices', deviceIds);
+    });
+
+    it('should call postMessage for setDashboardDateRange', () => {
+      const obj = setUp();
+      const spy = vi.spyOn(obj, 'postMessage');
+      const range: DashboardDateRange = { start: 123, end: 456 };
+
+      obj.setDashboardDateRange(range);
+
+      expect(spy).toHaveBeenCalledWith('setDashboardDateRange', range);
+    });
+
+    it('should call postMessage for setRealTime', () => {
+      const obj = setUp();
+      const spy = vi.spyOn(obj, 'postMessage');
+
+      obj.setRealTime(true);
+
+      expect(spy).toHaveBeenCalledWith('setRealTime', true);
+    });
+
+    it('should call postMessage for refreshDashboard', () => {
+      const obj = setUp();
+      const spy = vi.spyOn(obj, 'postMessage');
+
+      obj.refreshDashboard();
+
+      expect(spy).toHaveBeenCalledWith('refreshDashboard');
+    });
+
+    it('should call postMessage for openDrawer', () => {
+      const obj = setUp();
+      const spy = vi.spyOn(obj, 'postMessage');
+      const drawerInfo = { url: 'https://example.com', width: 400 };
+
+      obj.openDrawer(drawerInfo);
+
+      expect(spy).toHaveBeenCalledWith('openDrawer', {
+        drawerInfo,
+        id: obj.widget.getId()
+      });
+    });
+  });
+
+  describe('#widget integration', () => {
+    it('should return widget instance', () => {
+      const obj = setUp();
+      const widget = obj.getWidget();
+
+      expect(widget).toBeDefined();
+      expect(widget.getSettings).toBeTypeOf('function');
+      expect(widget.getId).toBeTypeOf('function');
+    });
+  });
+
+  describe('#off method', () => {
+    it('should unsubscribe callback from event', () => {
+      const obj = setUp();
+      const callback = vi.fn();
+
+      obj.on('testEvent', callback);
+      obj.emit('testEvent', 'data');
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      obj.off('testEvent', callback);
+      obj.emit('testEvent', 'data');
+      expect(callback).toHaveBeenCalledTimes(1); // Should not be called again
     });
   });
 });

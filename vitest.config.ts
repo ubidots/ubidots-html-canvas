@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./tests/setup.js'],
+    setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['node_modules', 'build', 'dist'],
     coverage: {
@@ -15,11 +15,17 @@ export default defineConfig({
         'tests/',
         'build/',
         'dist/',
-        '*.config.js'
+        '*.config.js',
+        '*.config.ts',
+        'src/types/',
       ]
+    },
+    typecheck: {
+      enabled: true,
+      include: ['tests/**/*.{test,spec}.ts'],
     }
   },
   esbuild: {
-    target: 'node14'
+    target: 'es2020'
   }
 });

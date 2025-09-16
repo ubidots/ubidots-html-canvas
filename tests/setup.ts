@@ -1,4 +1,7 @@
-// Vitest setup file
+/**
+ * @fileoverview Vitest setup file for TypeScript
+ */
+
 import { vi } from 'vitest';
 
 // Mock window.widgetId for tests
