@@ -1,7 +1,11 @@
 import { Widget } from './Widget';
 import { Ubidots as UJL } from '@ubidots/ubidots-javascript-library';
+import EventBus from './EventBus';
 
-const EventsTypes = {
+/**
+ * Event types constants for dashboard communication
+ */
+const EventTypes = {
   IS_REALTIME_ACTIVE: 'isRealTimeActive',
   OPEN_DRAWER: 'openDrawer',
   RECEIVED_HEADERS: 'receivedHeaders',
@@ -14,421 +18,465 @@ const EventsTypes = {
   SELECTED_DEVICES: 'selectedDevices',
   SELECTED_DEVICE_OBJECT: 'selectedDeviceObject',
   SELECTED_DEVICE_OBJECTS: 'selectedDeviceObjects',
+  SELECTED_FILTERS: 'selectedFilters',
   SET_DASHBOARD_DATE_RANGE: 'setDashboardDateRange',
   SET_DASHBOARD_DEVICE: 'setDashboardDevice',
+  SET_DASHBOARD_LAYER: 'setDashboardLayer',
   SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
   SET_FULL_SCREEN: 'setFullScreen',
   SET_REAL_TIME: 'setRealTime',
+  READY: 'ready',
+  DASHBOARD_REFRESHED: 'dashboardRefreshed',
 };
 
 /**
- * Create a listener to be able to listen to the Ubidots messages.
+ * Ubidots HTML Canvas communication library
+ * Provides a clean interface for widget-dashboard communication using pub/sub pattern
  * @class Ubidots
  */
 class Ubidots {
   constructor() {
-    this._eventsCallback = {
-      dashboardRefreshed: null,
-      isRealTimeActive: null,
-      ready: null,
-      receivedHeaders: null,
-      receivedJWTToken: null,
-      receivedToken: null,
-      selectedDashboardDateRange: null,
-      selectedDashboardObject: null,
-      selectedDevice: null,
-      selectedDeviceObject: null,
-      selectedDevices: null,
-      selectedDeviceObjects: null,
-      selectedFilters: null,
+    this._initializeProperties();
+    this._initializeEventBus();
+    this._initializeMessageListener();
+  }
+
+  /**
+   * Initialize internal properties
+   * @private
+   */
+  _initializeProperties() {
+    this._state = {
+      token: undefined,
+      jwtToken: undefined,
+      headers: {},
+      selectedDevice: undefined,
+      selectedDevices: undefined,
+      selectedDeviceObjects: undefined,
+      deviceObject: undefined,
+      dashboardDateRange: undefined,
+      dashboardObject: undefined,
+      selectedFilters: undefined,
+      realTime: undefined,
     };
-    this._headers = {};
+
     this.widget = new Widget(window.widgetId);
     this.api = UJL;
-    window.addEventListener('message', this._listenMessage);
   }
 
   /**
-   * Send a post Message
-   * @param {Object}
-   * @property {String} event - event name
-   * @property {String} payload - event payload
+   * Initialize event bus for pub/sub pattern
    * @private
+   */
+  _initializeEventBus() {
+    this.eventBus = new EventBus();
+    this._setupInternalSubscriptions();
+  }
+
+  /**
+   * Setup internal event subscriptions
+   * @private
+   */
+  _setupInternalSubscriptions() {
+    const stateUpdaters = {
+      [EventTypes.RECEIVED_TOKEN]: token => (this._state.token = token),
+      [EventTypes.RECEIVED_JWT_TOKEN]: jwt => (this._state.jwtToken = jwt),
+      [EventTypes.RECEIVED_HEADERS]: headers => (this._state.headers = headers || {}),
+      [EventTypes.SELECTED_DEVICE]: device => (this._state.selectedDevice = device),
+      [EventTypes.SELECTED_DEVICES]: devices => (this._state.selectedDevices = devices),
+      [EventTypes.SELECTED_DEVICE_OBJECT]: obj => (this._state.deviceObject = obj),
+      [EventTypes.SELECTED_DEVICE_OBJECTS]: objs => (this._state.selectedDeviceObjects = objs),
+      [EventTypes.SELECTED_DASHBOARD_DATE_RANGE]: range => (this._state.dashboardDateRange = range),
+      [EventTypes.SELECTED_DASHBOARD_OBJECT]: obj => (this._state.dashboardObject = obj),
+      [EventTypes.SELECTED_FILTERS]: filters => (this._state.selectedFilters = filters),
+      [EventTypes.IS_REALTIME_ACTIVE]: active => (this._state.realTime = active),
+    };
+
+    Object.entries(stateUpdaters).forEach(([event, updater]) => {
+      this.eventBus.subscribe(event, updater);
+    });
+  }
+
+  /**
+   * Initialize message listener for window communication
+   * @private
+   */
+  _initializeMessageListener() {
+    window.addEventListener('message', this._handleMessage);
+  }
+
+  /**
+   * Handle incoming window messages
+   * @private
+   */
+  _handleMessage = event => {
+    if (!this._isValidOrigin(event.origin)) return;
+
+    const { event: eventName, payload } = event.data || {};
+    if (!eventName) return;
+
+    this.eventBus.publish(eventName, payload);
+    this._checkReadyState();
+  };
+
+  /**
+   * Validate message origin
+   * @private
+   */
+  _isValidOrigin(origin) {
+    return origin === window.location.origin;
+  }
+
+  /**
+   * Check if widget is ready and emit ready event
+   * @private
+   */
+  _checkReadyState() {
+    const isReady = this._hasAuthentication() && this._hasRequiredState();
+
+    if (isReady) {
+      this.eventBus.publish(EventTypes.READY);
+    }
+  }
+
+  /**
+   * Check if we have authentication
+   * @private
+   */
+  _hasAuthentication() {
+    return !!(this._state.token || this._state.jwtToken);
+  }
+
+  /**
+   * Check if we have required state initialized
+   * @private
+   */
+  _hasRequiredState() {
+    return (
+      this._state.selectedDevice !== undefined &&
+      this._state.dashboardDateRange !== undefined &&
+      this._state.dashboardObject !== undefined
+    );
+  }
+
+  // ============================================================
+  // Public API - Event Subscription Methods
+  // ============================================================
+
+  /**
+   * Subscribe to events
+   * @param {String} eventName - Event name to listen
+   * @param {Function} callback - Callback function
    * @memberOf Ubidots
    */
-  // eslint-disable-next-line class-methods-use-this
-  _sendPostMessage({ event, payload }) {
-    window.parent.postMessage({ event: event, payload: payload }, window.location.origin);
+  on(eventName, callback) {
+    this.eventBus.subscribe(eventName, callback);
   }
 
   /**
-   * Set Dashboard Device
-   * @param {String} deviceId - Numeric device id or API label (starting with ~)
+   * Subscribe to events (alias for on)
+   * @param {String} eventName - Event name to listen
+   * @param {Function} callback - Callback function
+   * @memberOf Ubidots
+   */
+  listen(eventName, callback) {
+    this.on(eventName, callback);
+  }
+
+  /**
+   * Unsubscribe from events
+   * @param {String} eventName - Event name
+   * @param {Function} callback - Callback to remove
+   * @memberOf Ubidots
+   */
+  off(eventName, callback) {
+    this.eventBus.unsubscribe(eventName, callback);
+  }
+
+  /**
+   * Emit event to local subscribers
+   * @param {String} eventName - Event name
+   * @param {*} data - Event data
+   * @memberOf Ubidots
+   */
+  emit(eventName, data) {
+    this.eventBus.publish(eventName, data);
+  }
+
+  // ============================================================
+  // Public API - Dashboard Communication Methods
+  // ============================================================
+
+  /**
+   * Send message to parent window
+   * @param {String} event - Event name
+   * @param {*} payload - Event payload
+   * @memberOf Ubidots
+   */
+  postMessage(event, payload = undefined) {
+    window.parent.postMessage({ event, payload }, window.location.origin);
+    this.emit(event, payload);
+  }
+
+  /**
+   * Set dashboard device
+   * @param {String} deviceId - Device ID or API label
    * @memberOf Ubidots
    */
   setDashboardDevice(deviceId) {
-    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DEVICE, payload: deviceId });
+    this.postMessage(EventTypes.SET_DASHBOARD_DEVICE, deviceId);
   }
 
   /**
-   * Set Multiple Dashboard Devices
-   * @param {Array<String>} deviceIds - An array of device ids
+   * Set multiple dashboard devices
+   * @param {Array<String>} deviceIds - Array of device IDs
    * @memberOf Ubidots
    */
   setDashboardMultipleDevices(deviceIds) {
-    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_MULTIPLE_DEVICES, payload: deviceIds });
+    this.postMessage(EventTypes.SET_DASHBOARD_MULTIPLE_DEVICES, deviceIds);
   }
 
   /**
-   * Set Dashboard Layer
-   * @param {String} layerId - Layer id
+   * Set dashboard layer
+   * @param {String} layerId - Layer ID
    * @memberOf Ubidots
    */
   setDashboardLayer(layerId) {
-    this._sendPostMessage({ event: 'setDashboardLayer', payload: layerId });
+    this.postMessage(EventTypes.SET_DASHBOARD_LAYER, layerId);
   }
 
   /**
-   * Set Dashboard Data Range
-   * @param {Object}
-   * @property {number} start - Initial selected date
-   * @property {number} end - End selected date
+   * Set dashboard date range
+   * @param {Object} range - Date range with start and end
    * @memberOf Ubidots
    */
   setDashboardDateRange(range) {
-    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DATE_RANGE, payload: range });
+    this.postMessage(EventTypes.SET_DASHBOARD_DATE_RANGE, range);
   }
 
   /**
-   * Set Realtime
-   * @param {Boolean} enableRealTime
+   * Enable/disable real-time updates
+   * @param {Boolean} enableRealTime - Enable real-time flag
    * @memberOf Ubidots
    */
   setRealTime(enableRealTime) {
-    this._sendPostMessage({ event: EventsTypes.SET_REAL_TIME, payload: enableRealTime });
+    this.postMessage(EventTypes.SET_REAL_TIME, enableRealTime);
   }
 
   /**
-   * Refresh the Dashboard
+   * Refresh dashboard
    * @memberOf Ubidots
    */
   refreshDashboard() {
-    this._sendPostMessage({ event: EventsTypes.REFRESH_DASHBOARD });
+    this.postMessage(EventTypes.REFRESH_DASHBOARD);
   }
 
   /**
-   * Set FullScreen
-   * @param {String} fullScreenAction
+   * Set fullscreen mode
+   * @param {String} fullScreenAction - Fullscreen action
    * @memberOf Ubidots
    */
   setFullScreen(fullScreenAction) {
-    this._sendPostMessage({ event: EventsTypes.SET_FULL_SCREEN, payload: fullScreenAction });
+    this.postMessage(EventTypes.SET_FULL_SCREEN, fullScreenAction);
   }
 
   /**
-   * Open Drawer
-   * @param {Object} drawerInfo
-   * @property {String} url - url to open in the drawer
-   * @property {Number} width - drawer's width
+   * Open drawer with content
+   * @param {Object} drawerInfo - Drawer configuration
    * @memberOf Ubidots
    */
   openDrawer(drawerInfo) {
-    this._sendPostMessage({ event: EventsTypes.OPEN_DRAWER, payload: { drawerInfo, id: this.widget.getId() } });
+    const payload = {
+      drawerInfo,
+      id: this.widget.getId(),
+    };
+    this.postMessage(EventTypes.OPEN_DRAWER, payload);
   }
 
+  // ============================================================
+  // Public API - State Getters
+  // ============================================================
+
   /**
-   * Returns the token of the user.
-   * @returns {String} Token of the user.
-   *
-   * @memberOf Ubidots
+   * Get user token
+   * @returns {String} User token
    */
   get token() {
-    return this._token;
+    return this._state.token;
   }
 
   /**
-   * Insert the widget sepecific settings from the Plugin Widget
-   *
+   * Get JWT token
+   * @returns {String} JWT token
+   */
+  get jwtToken() {
+    return this._state.jwtToken;
+  }
+
+  /**
+   * Get selected device
+   * @returns {String} Selected device ID
+   */
+  get selectedDevice() {
+    return this._state.selectedDevice;
+  }
+
+  /**
+   * Get selected devices
+   * @returns {Array} Selected device IDs
+   */
+  get selectedDevices() {
+    return this._state.selectedDevices;
+  }
+
+  /**
+   * Get selected device objects
+   * @returns {Array} Selected device objects
+   */
+  get selectedDeviceObjects() {
+    return this._state.selectedDeviceObjects;
+  }
+
+  /**
+   * Get device object
+   * @returns {Object} Device object
+   */
+  get deviceObject() {
+    return this._state.deviceObject;
+  }
+
+  /**
+   * Get dashboard date range
+   * @returns {Object} Date range with start and end
+   */
+  get dashboardDateRange() {
+    return this._state.dashboardDateRange;
+  }
+
+  /**
+   * Get dashboard object
+   * @returns {Object} Dashboard object
+   */
+  get dashboardObject() {
+    return this._state.dashboardObject;
+  }
+
+  /**
+   * Get selected filters
+   * @returns {Array} Selected filters
+   */
+  get selectedFilters() {
+    return this._state.selectedFilters;
+  }
+
+  /**
+   * Get real-time status
+   * @returns {Boolean} Real-time enabled flag
+   */
+  get realTime() {
+    return this._state.realTime;
+  }
+
+  /**
+   * Get widget instance
+   * @returns {Widget} Widget instance
    */
   getWidget() {
     return this.widget;
   }
 
   /**
-   * Returns the header object
+   * Get headers for API requests
+   * @returns {Object} Headers object
    */
-  get getHeader() {
-    const headers = {
-      'Content-type': 'application/json',
-    };
-
-    if (this._jwttoken) {
-      headers['Authorization'] = `Bearer ${this._jwttoken}`;
-      return headers;
-    }
-
-    if (this._token) {
-      headers['X-Auth-Token'] = this._token;
-    }
-
-    return headers;
-  }
-
-  /**
-   * Set the token value
-   * @param {String} token - token of the user
-   *
-   * @private
-   * @memberOf Ubidots
-   */
-  _setToken = token => {
-    this._token = token;
-  };
-
-  _setJWTToken = jwt => {
-    this._jwtToken = jwt;
-  };
-
-  _setHeaders = (headers = {}) => {
-    this._headers = headers;
-  };
-
-  /**
-   * Returns selected device in the dashboard
-   * @returns {String} Id of the selected device
-   * @memberOf Ubidots
-   */
-  get selectedDevice() {
-    return this._selectedDevice;
-  }
-
-  /**
-   * Gets the selected devices.
-   *
-   * @returns {Array} The selected devices.
-   */
-  get selectedDevices() {
-    return this._selectedDevices;
-  }
-
   getHeaders() {
     const headers = {
-      ...this._headers,
+      ...this._state.headers,
       'Content-Type': 'application/json',
     };
 
-    if (this.token) {
-      headers['X-Auth-Token'] = this.token;
-    } else if (this.jwtToken) {
-      headers['Authorization'] = `Bearer ${this.jwtToken}`;
+    if (this._state.token) {
+      headers['X-Auth-Token'] = this._state.token;
+    } else if (this._state.jwtToken) {
+      headers['Authorization'] = `Bearer ${this._state.jwtToken}`;
     }
 
     return headers;
   }
 
-  get jwtToken() {
-    return this._jwtToken;
+  /**
+   * Get header (deprecated, use getHeaders)
+   * @deprecated Use getHeaders() instead
+   */
+  get getHeader() {
+    return this.getHeaders();
   }
 
-  /**
-   * Set the device id value
-   * @param {String} selectedDevice - The selected device id in the dashboard
-   *
-   * @private
-   * @memberOf Ubidots
-   */
+  // ============================================================
+  // Private API - State Setters (for backwards compatibility)
+  // ============================================================
+
+  _setToken = token => {
+    this._state.token = token;
+    this.emit(EventTypes.RECEIVED_TOKEN, token);
+  };
+
+  _setJWTToken = jwt => {
+    this._state.jwtToken = jwt;
+    this.emit(EventTypes.RECEIVED_JWT_TOKEN, jwt);
+  };
+
+  _setHeaders = (headers = {}) => {
+    this._state.headers = headers;
+    this.emit(EventTypes.RECEIVED_HEADERS, headers);
+  };
+
   _setSelectedDevice = selectedDevice => {
-    this._selectedDevice = selectedDevice;
+    this._state.selectedDevice = selectedDevice;
+    this.emit(EventTypes.SELECTED_DEVICE, selectedDevice);
   };
 
-  /**
-   * Sets the selected devices.
-   *
-   * @param {Array} deviceIdsArray - An array of device IDs.
-   */
   _setSelectedDevices = deviceIdsArray => {
-    this._selectedDevices = deviceIdsArray;
+    this._state.selectedDevices = deviceIdsArray;
+    this.emit(EventTypes.SELECTED_DEVICES, deviceIdsArray);
   };
 
-  /**
-   * Returns selected date range in the dashboard
-   * @returns {Object} Date range selected
-   * @property {number} start - Initial selected date
-   * @property {number} end - End selected date
-   *
-   * @memberOf Ubidots
-   */
-  get dashboardDateRange() {
-    return this._dashboardDateRange;
-  }
-
-  /**
-   * Set the selected date range
-   * @param {Object} dashboardDateRange - The selected date range in the dashboard
-   * @property {number} start - Initial selected date
-   * @property {number} end - End selected date
-   *
-   * @private
-   * @memberOf Ubidots
-   */
   _setDashboardDateRange = dashboardDateRange => {
-    this._dashboardDateRange = dashboardDateRange;
+    this._state.dashboardDateRange = dashboardDateRange;
+    this.emit(EventTypes.SELECTED_DASHBOARD_DATE_RANGE, dashboardDateRange);
   };
 
-  /**
-   * Returns the realTime status.
-   * @returns {Boolean} with realTime status.
-   *
-   * @memberOf Ubidots
-   */
-  get realTime() {
-    return this._realTime;
-  }
-
-  /**
-   * Set the realTime value
-   * @param {Boolean} realTime
-   *
-   * @private
-   * @memberOf Ubidots
-   */
   _setRealTime = realTime => {
-    this._realTime = realTime;
+    this._state.realTime = realTime;
+    this.emit(EventTypes.IS_REALTIME_ACTIVE, realTime);
   };
 
-  /**
-   * Returns the deviceObject.
-   * @returns {Object} deviceObject.
-   *
-   * @memberOf Ubidots
-   */
-  get deviceObject() {
-    return this._deviceObject;
-  }
-
-  /**
-   * Set the deviceObject value
-   * @param {Object} deviceObject - deviceObject
-   *
-   * @private
-   * @memberOf Ubidots
-   */
   _setDeviceObject = deviceObject => {
-    this._deviceObject = deviceObject;
+    this._state.deviceObject = deviceObject;
+    this.emit(EventTypes.SELECTED_DEVICE_OBJECT, deviceObject);
   };
 
-  /**
-   * Get the selected device objects.
-   * @returns {Array} The selected device objects.
-   */
-  get selectedDeviceObjects() {
-    return this._selectedDeviceObjects;
-  }
-
-  /**
-   * Sets the selected device objects.
-   *
-   * @param {Array} selectedDeviceObjectsList - The list of selected device objects.
-   */
   _setSelectedDeviceObjects = selectedDeviceObjectsList => {
-    this._selectedDeviceObjects = selectedDeviceObjectsList;
+    this._state.selectedDeviceObjects = selectedDeviceObjectsList;
+    this.emit(EventTypes.SELECTED_DEVICE_OBJECTS, selectedDeviceObjectsList);
   };
 
-  /**
-   * Returns the dashboardObject.
-   * @returns {Object} dashboardObject.
-   *
-   * @memberOf Ubidots
-   */
-  get dashboardObject() {
-    return this._dashboardObject;
-  }
-
-  /**
-   * Set the dashboardObject value
-   * @param {Object} dashboardObject - dashboardObject
-   *
-   * @private
-   * @memberOf Ubidots
-   */
   _setDashboardObject = dashboardObject => {
-    this._dashboardObject = dashboardObject;
+    this._state.dashboardObject = dashboardObject;
+    this.emit(EventTypes.SELECTED_DASHBOARD_OBJECT, dashboardObject);
   };
 
-  /**
-   * Get the selected filters.
-   *
-   * @returns {Array} The selected filters.
-   */
-  get selectedFilters() {
-    return this._selectedFilters;
-  }
-
-  /**
-   * Sets the selected filters for the Ubidots class.
-   *
-   * @param {Array} selectedFilters - The selected filters to be set.
-   */
   _setSelectedFilters = selectedFilters => {
-    this._selectedFilters = selectedFilters;
-  };
-  /**
-   * Make a window listener event to receive dashboard messages
-   * @param {String} eventName - Event name to listen
-   * @param {Function} [callback] - Function to execute when be listen to the message
-   *
-   * @memberOf Ubidots
-   */
-  on = (eventName, callback) => {
-    if (Object.keys(this._eventsCallback).includes(eventName)) {
-      this._eventsCallback[eventName] = callback;
-    }
+    this._state.selectedFilters = selectedFilters;
+    this.emit(EventTypes.SELECTED_FILTERS, selectedFilters);
   };
 
   /**
-   * Make a window listener event to receive dashboard messages and set data values to class attributes
-   * @param {String} eventName - Event name to listen
-   * @param {Function} [callback] - Function to execute when be listen to the message
-   *
+   * Legacy method for backwards compatibility
    * @private
-   * @memberOf Ubidots
+   * @deprecated
    */
-  _listenMessage = event => {
-    if (event.origin !== window.location.origin) return;
-    const { event: eventName, payload } = event.data;
-
-    const eventHandlers = {
-      [EventsTypes.IS_REALTIME_ACTIVE]: this._setRealTime,
-      [EventsTypes.RECEIVED_HEADERS]: this._setHeaders,
-      [EventsTypes.RECEIVED_JWT_TOKEN]: this._setJWTToken,
-      [EventsTypes.RECEIVED_TOKEN]: this._setToken,
-      [EventsTypes.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
-      [EventsTypes.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
-      [EventsTypes.SELECTED_DEVICE]: this._setSelectedDevice,
-      [EventsTypes.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
-      [EventsTypes.SELECTED_DEVICES]: this._setSelectedDevices,
-      [EventsTypes.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
-      [EventsTypes.SELECTED_FILTERS]: this._setSelectedFilters,
-    };
-
-    const handler = eventHandlers[eventName];
-    if (handler) handler(payload);
-
-    if (typeof this._eventsCallback[event.data.event] === 'function') {
-      this._eventsCallback[event.data.event](event.data.payload);
-    }
-
-    if (
-      (this._token || this._jwtToken) &&
-      this._selectedDevice !== undefined &&
-      this._dashboardDateRange !== undefined &&
-      this._dashboardObject !== undefined &&
-      typeof this._eventsCallback.ready === 'function'
-    ) {
-      this._eventsCallback.ready();
-      this._eventsCallback.ready = null;
-    }
-  };
+  _listenMessage = this._handleMessage;
 }
 
 export default Ubidots;
