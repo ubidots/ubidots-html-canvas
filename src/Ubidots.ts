@@ -14,16 +14,22 @@ enum EventTypes {
   DESTROY = 'destroy',
 }
 
-enum ApiVersions {
-  V1 = 'v1',
-  V2 = 'v2',
+type SupportedVersions = 'v1' | 'v2';
+
+function isValidVersion(version: string): version is SupportedVersions {
+  return version === 'v1' || version === 'v2';
 }
 
 class Ubidots extends EventEmitter {
-  private apiVersion: string;
+  private apiVersion: SupportedVersions;
 
-  constructor(version: string = ApiVersions.V1) {
+  constructor(version: string = 'v1') {
     super();
+
+    if (!isValidVersion(version)) {
+      throw new Error(`Unsupported API version: ${version}. Supported versions: v1, v2`);
+    }
+
     this.apiVersion = version;
     this.setupPostMessageListener();
     logger.info(`Ubidots initialized with version ${version}`);
@@ -132,11 +138,11 @@ class Ubidots extends EventEmitter {
 }
 
 export default Ubidots;
-export { EventTypes, ApiVersions };
 
 // Usage examples:
 // const ubidots = new Ubidots(); // defaults to v1
-// const ubidotsV2 = new Ubidots(ApiVersions.V2);
+// const ubidotsV2 = new Ubidots('v2'); // valid version
+// const invalidVersion = new Ubidots('v3'); // throws Error, crashes app
 
 // Subscribe to device selection
 // ubidots.on('v1:devices:selected', (data) => {

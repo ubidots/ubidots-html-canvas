@@ -25,14 +25,16 @@ between widgets and the Ubidots dashboard.
 ### Installation & Setup
 
 ```javascript
-import Ubidots, { ApiVersions } from '@ubidots/html-canvas';
+import Ubidots from '@ubidots/html-canvas';
 
 // Use default version (v1)
 const ubidots = new Ubidots();
 
-// Or specify a version
-const ubidotsV2 = new Ubidots(ApiVersions.V2);
-const ubidotsCustom = new Ubidots('v3'); // Custom version string
+// Specify supported versions
+const ubidotsV2 = new Ubidots('v2');
+
+// Invalid version - throws error, crashes app
+const invalidVersion = new Ubidots('v3'); // Throws Error: Unsupported API version
 ```
 
 ### Basic Usage
@@ -75,15 +77,24 @@ This prevents communication loops and follows the same pattern as the legacy Ubi
 
 ### API Versioning System
 
-The library supports multiple API versions to ensure backward compatibility and enable feature evolution:
+The library supports specific API versions with validation to ensure backward compatibility:
+
+**Supported Versions:** `'v1'`, `'v2'`
 
 ```javascript
-import Ubidots, { ApiVersions, EventTypes } from '@ubidots/html-canvas';
+import Ubidots from '@ubidots/html-canvas';
 
-// Initialize with different versions
-const ubidotsV1 = new Ubidots(ApiVersions.V1); // or new Ubidots() for default
-const ubidotsV2 = new Ubidots(ApiVersions.V2);
-const ubidotsCustom = new Ubidots('v3'); // Custom version string
+// Initialize with supported versions
+const ubidotsV1 = new Ubidots(); // defaults to 'v1'
+const ubidotsV2 = new Ubidots('v2');
+
+// Invalid version handling
+try {
+  const invalidVersion = new Ubidots('v3'); // Throws Error
+} catch (error) {
+  console.error('Invalid API version:', error.message);
+  // Error: Unsupported API version: v3. Supported versions: v1, v2
+}
 
 // Version-specific endpoints are automatically generated
 ubidotsV1.on('v1:devices:selected', handleV1Device);
@@ -96,7 +107,12 @@ Each API version supports the same event types but with version-specific namespa
 
 - **v1**: `v1:devices:selected`, `v1:users:created`, etc.
 - **v2**: `v2:devices:selected`, `v2:users:created`, etc.
-- **Custom**: `{version}:devices:selected`, etc.
+
+**Version Validation:**
+
+- Invalid versions throw an Error immediately
+- No fallback behavior - application will crash
+- Ensures only supported versions are used in production
 
 #### Backward Compatibility
 
@@ -104,12 +120,23 @@ Different versions can coexist in the same application:
 
 ```javascript
 // Legacy widget using v1
-const legacyWidget = new Ubidots(ApiVersions.V1);
+const legacyWidget = new Ubidots('v1');
 legacyWidget.on('v1:devices:selected', handleLegacyFormat);
 
 // New widget using v2
-const modernWidget = new Ubidots(ApiVersions.V2);
+const modernWidget = new Ubidots('v2');
 modernWidget.on('v2:devices:selected', handleModernFormat);
+
+// Validate versions at initialization
+try {
+  const legacyWidget = new Ubidots('v1');
+  const modernWidget = new Ubidots('v2');
+
+  legacyWidget.on('v1:devices:selected', handleLegacyFormat);
+  modernWidget.on('v2:devices:selected', handleModernFormat);
+} catch (error) {
+  console.error('Failed to initialize Ubidots:', error.message);
+}
 ```
 
 ### Supported Endpoints
