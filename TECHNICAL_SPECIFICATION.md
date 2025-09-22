@@ -14,7 +14,8 @@ between widgets and the Ubidots dashboard.
 
 ### Key Components
 
-1. **EventEmitter**: High-performance observer pattern implementation
+1. **EventEmitter**: High-performance observer pattern implementation for multiple listeners per event (vs legacy's
+   single callback approach)
 2. **Ubidots Class**: Main interface extending EventEmitter with endpoint validation
 3. **PostMessage Bridge**: Secure communication between iframe widgets and parent dashboard
 4. **Error Handling**: Centralized error reporting and event emission system
@@ -147,8 +148,10 @@ const unsubscribe = ubidots.once('v1:devices:selected', data => {
 
 #### Multiple Listeners
 
+Unlike the legacy library which supports only one callback per event, this implementation allows multiple listeners:
+
 ```javascript
-// Multiple handlers for same event
+// Multiple handlers for same event (legacy: only one callback possible)
 ubidots.on('v1:devices:selected', logDeviceSelection);
 ubidots.on('v1:devices:selected', updateUI);
 ubidots.on('v1:devices:selected', sendAnalytics);
@@ -285,17 +288,19 @@ ubidots.on('v1:devices:selected', () => {
 
 ### Memory Management
 
+Individual listener management (not available in legacy library):
+
 ```javascript
-// Always store unsubscribe functions
+// Store unsubscribe functions for individual listeners
 const unsubscribeDevice = ubidots.on('v1:devices:selected', handleDevice);
 const unsubscribeUser = ubidots.on('v1:users:updated', handleUser);
 
-// Clean up when component unmounts
+// Clean up individual listeners when component unmounts
 function cleanup() {
-  unsubscribeDevice();
-  unsubscribeUser();
+  unsubscribeDevice(); // Remove only this specific handler
+  unsubscribeUser(); // Remove only this specific handler
 
-  // Clean up the library instance
+  // Or clean up all listeners at once
   ubidots.destroy();
 }
 ```
@@ -371,16 +376,17 @@ ubidots.on('v1:devices:selected', data => {
 
 ### Optimized Operations
 
-- **O(1) event registration and lookup** using Map/Set structures
+- **O(1) event registration and lookup** using Map/Set structures (vs legacy's O(1) object property access)
 - **Memory efficient** with automatic cleanup of empty listener sets
-- **Error isolation** prevents one failing handler from affecting others
-- **Minimal overhead** for event processing and validation
+- **Error isolation** prevents one failing handler from affecting others (legacy: no isolation)
+- **Multiple listeners support** without performance degradation (legacy: single callback only)
 
-### Scalability
+### Scalability vs Legacy
 
-- Supports multiple listeners per event
-- Efficient memory usage with garbage collection friendly patterns
-- Fast validation using Set-based endpoint checking
+- **Multiple listeners per event** (legacy: one callback per event, newer overwrites previous)
+- **Individual listener cleanup** (legacy: no individual unsubscribe capability)
+- **Advanced features**: `once()`, `listenerCount()`, `removeAllListeners()` (not available in legacy)
+- **Error isolation**: failing handlers don't affect others (legacy: no isolation)
 
 ## Integration Examples
 
