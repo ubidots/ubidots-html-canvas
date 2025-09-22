@@ -1,34 +1,102 @@
-name: Build
+name: CI/CD Pipeline
 
 on:
   pull_request:
-    branches: [ "master" ]
+    branches: ['master']
+  push:
+    branches: ['master']
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    name: Test & Quality Checks
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js 18.x
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.x
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
 
-    - name: Install dependencies
-      run:  npm install
-    
-    - name: Lint
-      run:  npm run lint
-        
-    - name: Format
-      run:  npm run format:check
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'pnpm'
 
-    - name: Tests
-      run:  npm run unit:all
-        
-    - name: Build
-      run:  npm run build
-        
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Run tests
+        run: pnpm test:run
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    name: Release & Deploy
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm release
+
+      - name: Deploy to CDN (Simulation)
+        if: success()
+        run: |
+          echo "🚀 Deploying to CDN..."
+          echo "Version: $(node -p "require('./package.json').version")"
+          # In real scenario, this would deploy to actual CDN
+          echo "Files would be deployed to:"
+          echo "- https://cdn.ubidots.com/html-canvas/v$(node -p "require('./package.json').version")/"
+          echo "- https://cdn.ubidots.com/html-canvas/v$(node -p "require('./package.json').version.split('.')[0]")/"
+          echo "- https://cdn.ubidots.com/html-canvas/latest/"

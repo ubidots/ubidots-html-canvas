@@ -1,1 +1,1 @@
-export { default } from './Ubidots';
+export { default } from './ubidots';
