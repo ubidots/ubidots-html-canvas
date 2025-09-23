@@ -12,6 +12,7 @@ enum EventTypes {
   DEVICE_SELECTED = 'devices:selected',
   ERROR = 'error',
   DESTROY = 'destroy',
+  READY = 'ready',
 }
 
 type SupportedVersions = 'v1' | 'v2';
@@ -33,10 +34,20 @@ class Ubidots extends EventEmitter {
     this.apiVersion = version;
     this.setupPostMessageListener();
     logger.info(`Ubidots initialized with version ${version}`);
+
+    // Emit ready event after initialization
+    setTimeout(() => {
+      super.emit(EventTypes.READY, { version: this.apiVersion, timestamp: Date.now() });
+    }, 0);
   }
 
   private get supportedEndpoints(): Set<string> {
-    return new Set([`${this.apiVersion}:${EventTypes.DEVICE_SELECTED}`, EventTypes.ERROR, EventTypes.DESTROY]);
+    return new Set([
+      `${this.apiVersion}:${EventTypes.DEVICE_SELECTED}`,
+      EventTypes.ERROR,
+      EventTypes.DESTROY,
+      EventTypes.READY,
+    ]);
   }
 
   private validateEndpoint(event: string, context: string): boolean {
@@ -152,6 +163,11 @@ export default Ubidots;
 // Subscribe to errors
 // ubidots.on(EventTypes.ERROR, (errorData) => {
 //   console.error('Ubidots error:', errorData);
+// });
+
+// Subscribe to ready event
+// ubidots.on(EventTypes.READY, (data) => {
+//   console.log('Ubidots ready with version:', data.version);
 // });
 
 // Subscribe to destroy event
