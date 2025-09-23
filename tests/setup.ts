@@ -1,17 +1,9 @@
-/**
- * @fileoverview Vitest setup file for TypeScript
- */
+import { beforeAll } from 'vitest';
 
-import { vi } from 'vitest';
-
-// Mock window.widgetId for tests
-global.window.widgetId = 'test-widget-id';
-
-// Mock window._pluginWidgetSettings
-global.window._pluginWidgetSettings = {};
-
-// Setup cleanup after each test
-afterEach(() => {
-  vi.clearAllMocks();
-  vi.restoreAllMocks();
+beforeAll(() => {
+  // Global test setup
+  Object.defineProperty(window, 'location', {
+    value: { origin: 'http://localhost:3000' },
+    writable: true,
+  });
 });

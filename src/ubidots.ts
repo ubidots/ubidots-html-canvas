@@ -65,6 +65,12 @@ class Ubidots extends EventEmitter {
 
   private handleMessage(event: MessageEvent): void {
     try {
+      // Validate origin
+      if (event.origin !== window.location.origin) {
+        logger.debug('Message from invalid origin received', { origin: event.origin });
+        return;
+      }
+
       // Validate message format
       if (!this.isValidPostMessage(event.data)) {
         logger.debug('Invalid message format received');
