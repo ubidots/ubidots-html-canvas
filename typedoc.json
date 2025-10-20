@@ -1,0 +1,29 @@
+{
+  "basePath": ".",
+  "categorizeByGroup": true,
+  "categoryOrder": ["Main Classes", "Event System", "Widget", "Types", "Interfaces", "*"],
+  "cleanOutputDir": true,
+  "defaultCategory": "Other",
+  "entryPoints": ["src/index.ts"],
+  "exclude": ["**/node_modules/**", "**/tests/**", "**/*.test.ts", "**/*.spec.ts"],
+  "excludeInternal": false,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "includeVersion": true,
+  "kindSortOrder": ["Class", "Constructor", "Property", "Method", "Interface", "TypeAlias", "Enum"],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "out": "docs",
+  "readme": "README.md",
+  "searchInComments": true,
+  "sort": ["source-order"],
+  "theme": "default",
+  "treatWarningsAsErrors": false,
+  "validation": {
+    "invalidLink": true,
+    "notDocumented": false,
+    "notExported": true
+  }
+}

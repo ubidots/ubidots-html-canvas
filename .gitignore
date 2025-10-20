@@ -62,9 +62,23 @@ typings/
 
 # Omit compiled files
 build/
-.yarn/ 
+dist/
+docs/
+.yarn/
 
+# IDE files
 .idea
+.vscode/
+*.swp
+*.swo
 
+# TypeScript
+*.tsbuildinfo
+
+# Package manager files
 .pnp.cjs
 .pnp.loader.mjs
+
+# OS files
+.DS_Store
+Thumbs.db
