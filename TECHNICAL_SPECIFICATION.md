@@ -27,25 +27,27 @@ between widgets and the Ubidots dashboard.
 ```javascript
 import Ubidots from '@ubidots/html-canvas';
 
-// Use default version (v1)
+// Initialize Ubidots (no version parameter needed)
 const ubidots = new Ubidots();
 
-// Specify supported versions
-const ubidotsV2 = new Ubidots('v2');
-
-// Invalid version - throws error, crashes app
-const invalidVersion = new Ubidots('v3'); // Throws Error: Unsupported API version
+// Version is specified in event names, not in constructor
+// You can work with multiple API versions using the same instance
 ```
 
 ### Basic Usage
 
 ```javascript
-// Subscribe to events
+// Subscribe to events (version is part of the event name)
 const unsubscribe = ubidots.on('v1:devices:selected', data => {
-  console.log('Device selected:', data);
+  console.log('Device selected (v1):', data);
 });
 
-// Emit events
+// Subscribe to v2 events with the same instance
+const unsubscribeV2 = ubidots.on('v2:devices:selected', data => {
+  console.log('Device selected (v2):', data);
+});
+
+// Emit events (specify version in event name)
 ubidots.emit('v1:devices:selected', {
   deviceId: 'device-123',
   userId: 'user-456',
@@ -54,6 +56,7 @@ ubidots.emit('v1:devices:selected', {
 
 // Clean up when done
 unsubscribe();
+unsubscribeV2();
 ```
 
 ## Event System Features
@@ -77,87 +80,105 @@ This prevents communication loops and follows the same pattern as the legacy Ubi
 
 ### API Versioning System
 
-The library supports specific API versions with validation to ensure backward compatibility:
+The library supports multiple API versions through event name formatting rather than constructor parameters:
 
-**Supported Versions:** `'v1'`, `'v2'`
+**Event Format:** Version is specified in the event name using the pattern `vX:event:name`
 
 ```javascript
 import Ubidots from '@ubidots/html-canvas';
 
-// Initialize with supported versions
-const ubidotsV1 = new Ubidots(); // defaults to 'v1'
-const ubidotsV2 = new Ubidots('v2');
+// Initialize once - no version parameter
+const ubidots = new Ubidots();
 
-// Invalid version handling
-try {
-  const invalidVersion = new Ubidots('v3'); // Throws Error
-} catch (error) {
-  console.error('Invalid API version:', error.message);
-  // Error: Unsupported API version: v3. Supported versions: v1, v2
-}
+// Subscribe to different API versions using the same instance
+ubidots.on('v1:devices:selected', handleV1Device);
+ubidots.on('v2:devices:selected', handleV2Device);
+ubidots.on('v999:custom:event', handleCustomEvent); // Any version number is valid
 
-// Version-specific endpoints are automatically generated
-ubidotsV1.on('v1:devices:selected', handleV1Device);
-ubidotsV2.on('v2:devices:selected', handleV2Device);
+// Emit events to different versions
+ubidots.emit('v1:devices:selected', { deviceId: '123' });
+ubidots.emit('v2:users:created', { userId: '456' });
 ```
 
-#### Version-Specific Features
+#### Version Format Validation
 
-Each API version supports the same event types but with version-specific namespacing:
+The library validates event format, not specific version numbers:
 
-- **v1**: `v1:devices:selected`, `v1:users:created`, etc.
-- **v2**: `v2:devices:selected`, `v2:users:created`, etc.
+**Valid Formats:**
+- Versioned events: `v1:devices:selected`, `v2:users:created`, `v999:custom:event`
+- Version-agnostic events: `error`, `ready`, `destroy`
 
-**Version Validation:**
+**Invalid Formats:**
+- Missing version number: `devices:selected` ❌
+- Invalid version prefix: `v:missing:number` ❌
+- Invalid separators: `v1-devices-selected` ❌
 
-- Invalid versions throw an Error immediately
-- No fallback behavior - application will crash
-- Ensures only supported versions are used in production
-
-#### Backward Compatibility
-
-Different versions can coexist in the same application:
+**Format Validation:**
 
 ```javascript
-// Legacy widget using v1
-const legacyWidget = new Ubidots('v1');
-legacyWidget.on('v1:devices:selected', handleLegacyFormat);
+const ubidots = new Ubidots();
 
-// New widget using v2
-const modernWidget = new Ubidots('v2');
-modernWidget.on('v2:devices:selected', handleModernFormat);
+// Valid - will work
+ubidots.on('v1:devices:selected', callback); // ✅
+ubidots.on('v2:users:created', callback); // ✅
+ubidots.on('v100:custom:event', callback); // ✅
+ubidots.on('error', callback); // ✅ (version-agnostic)
 
-// Validate versions at initialization
-try {
-  const legacyWidget = new Ubidots('v1');
-  const modernWidget = new Ubidots('v2');
-
-  legacyWidget.on('v1:devices:selected', handleLegacyFormat);
-  modernWidget.on('v2:devices:selected', handleModernFormat);
-} catch (error) {
-  console.error('Failed to initialize Ubidots:', error.message);
-}
+// Invalid - will emit error event
+ubidots.on('devices:selected', callback); // ❌
+ubidots.on('v:invalid', callback); // ❌
 ```
 
-### Supported Endpoints
+#### Backward Compatibility and Flexibility
 
-Currently supported event types (available in all versions):
-
-- `{version}:devices:selected` - Device selection events
-- `error` - Internal library errors and exceptions (version-agnostic)
-- `destroy` - Library cleanup events (version-agnostic)
-
-### Endpoint Validation
-
-The library validates all event subscriptions and emissions against a whitelist of supported endpoints:
+A single instance can work with multiple API versions simultaneously:
 
 ```javascript
-// ✅ Valid - will work
+const ubidots = new Ubidots();
+
+// Handle both v1 and v2 events with the same instance
+ubidots.on('v1:devices:selected', data => {
+  console.log('Legacy format:', data);
+  handleLegacyFormat(data);
+});
+
+ubidots.on('v2:devices:selected', data => {
+  console.log('Modern format:', data);
+  handleModernFormat(data);
+});
+
+// This provides maximum flexibility for migration scenarios
+```
+
+### Supported Event Patterns
+
+The library accepts events that follow the correct format:
+
+**Versioned Events:**
+- Pattern: `vX:event:name` where X is any number
+- Examples: `v1:devices:selected`, `v2:users:created`, `v100:custom:event`
+
+**Version-Agnostic Events:**
+- `error` - Internal library errors and exceptions
+- `ready` - Library initialization complete
+- `destroy` - Library cleanup events
+
+### Event Format Validation
+
+The library validates event format, not event content:
+
+```javascript
+const ubidots = new Ubidots();
+
+// ✅ Valid formats - will work
 ubidots.on('v1:devices:selected', callback);
+ubidots.on('v2:users:created', callback);
+ubidots.on('v999:custom:endpoint', callback);
+ubidots.on('error', callback);
 
-// ❌ Invalid - will emit error event, returns safe unsubscribe function
-const unsubscribe = ubidots.on('v1:devices:unsupported', callback);
-// Emits: { message: "Unsupported event endpoint: v1:devices:unsupported", context: "on" }
+// ❌ Invalid formats - will emit error event, returns safe unsubscribe function
+const unsubscribe = ubidots.on('invalid-format', callback);
+// Emits: { message: "Invalid event format: invalid-format...", context: "on" }
 // Returns: safe noop function for cleanup
 ```
 

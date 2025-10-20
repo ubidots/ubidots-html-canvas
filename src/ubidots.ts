@@ -15,44 +15,33 @@ enum EventTypes {
   READY = 'ready',
 }
 
-type SupportedVersions = 'v1' | 'v2';
+function isValidEventFormat(event: string): boolean {
+  // Events can be:
+  // - Version-specific: v1:devices:selected, v2:users:created
+  // - Version-agnostic: error, ready, destroy
+  const versionedPattern = /^v\d+:[a-z:]+$/;
+  const versionAgnosticEvents = ['error', 'ready', 'destroy'];
 
-function isValidVersion(version: string): version is SupportedVersions {
-  return version === 'v1' || version === 'v2';
+  return versionedPattern.test(event) || versionAgnosticEvents.includes(event);
 }
 
 class Ubidots extends EventEmitter {
-  private apiVersion: SupportedVersions;
-
-  constructor(version: string = 'v1') {
+  constructor() {
     super();
 
-    if (!isValidVersion(version)) {
-      throw new Error(`Unsupported API version: ${version}. Supported versions: v1, v2`);
-    }
-
-    this.apiVersion = version;
     this.setupPostMessageListener();
-    logger.info(`Ubidots initialized with version ${version}`);
+    logger.info('Ubidots initialized');
 
-    // Emit ready event after initialization
     setTimeout(() => {
-      super.emit(EventTypes.READY, { version: this.apiVersion, timestamp: Date.now() });
+      super.emit(EventTypes.READY, { timestamp: Date.now() });
     }, 0);
   }
 
-  private get supportedEndpoints(): Set<string> {
-    return new Set([
-      `${this.apiVersion}:${EventTypes.DEVICE_SELECTED}`,
-      EventTypes.ERROR,
-      EventTypes.DESTROY,
-      EventTypes.READY,
-    ]);
-  }
-
   private validateEndpoint(event: string, context: string): boolean {
-    if (!this.supportedEndpoints.has(event)) {
-      const error = new Error(`Unsupported event endpoint: ${event}`);
+    if (!isValidEventFormat(event)) {
+      const error = new Error(
+        `Invalid event format: ${event}. Expected format: 'vX:event:name' or version-agnostic events (error, ready, destroy)`
+      );
       this.emitError(error, context);
       return false;
     }
@@ -79,9 +68,9 @@ class Ubidots extends EventEmitter {
 
       const { event: eventName, payload } = event.data as PostMessageData;
 
-      // Validate endpoint
-      if (!this.supportedEndpoints.has(eventName)) {
-        const error = new Error(`Unsupported event endpoint from parent: ${eventName}`);
+      // Validate endpoint format
+      if (!isValidEventFormat(eventName)) {
+        const error = new Error(`Invalid event format from parent: ${eventName}`);
         this.emitError(error, 'handleMessage');
         return;
       }
@@ -157,33 +146,41 @@ class Ubidots extends EventEmitter {
 export default Ubidots;
 
 // Usage examples:
-// const ubidots = new Ubidots(); // defaults to v1
-// const ubidotsV2 = new Ubidots('v2'); // valid version
-// const invalidVersion = new Ubidots('v3'); // throws Error, crashes app
+// const ubidots = new Ubidots();
 
-// Subscribe to device selection
+// Subscribe to device selection events (version specified in event name)
 // ubidots.on('v1:devices:selected', (data) => {
-//   console.log('Device selected:', data);
+//   console.log('Device selected (v1):', data);
 // });
 
-// Subscribe to errors
-// ubidots.on(EventTypes.ERROR, (errorData) => {
+// ubidots.on('v2:devices:selected', (data) => {
+//   console.log('Device selected (v2):', data);
+// });
+
+// Subscribe to errors (version-agnostic)
+// ubidots.on('error', (errorData) => {
 //   console.error('Ubidots error:', errorData);
 // });
 
-// Subscribe to ready event
-// ubidots.on(EventTypes.READY, (data) => {
-//   console.log('Ubidots ready with version:', data.version);
+// Subscribe to ready event (version-agnostic)
+// ubidots.on('ready', (data) => {
+//   console.log('Ubidots ready at:', data.timestamp);
 // });
 
-// Subscribe to destroy event
-// ubidots.on(EventTypes.DESTROY, (data) => {
+// Subscribe to destroy event (version-agnostic)
+// ubidots.on('destroy', (data) => {
 //   console.log('Ubidots instance destroyed at:', data.timestamp);
 // });
 
-// Emit device selection event
+// Emit device selection event (specify version in event name)
 // ubidots.emit('v1:devices:selected', {
 //   deviceId: 'device-123',
 //   userId: 'user-456',
+//   timestamp: Date.now()
+// });
+
+// Emit with different version
+// ubidots.emit('v2:devices:selected', {
+//   deviceId: 'device-456',
 //   timestamp: Date.now()
 // });

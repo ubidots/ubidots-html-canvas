@@ -30,52 +30,23 @@ describe('Ubidots Modern Implementation', () => {
     vi.restoreAllMocks();
   });
 
-  describe('Constructor and Version Validation', () => {
-    it('should create instance with default version v1', () => {
+  describe('Constructor', () => {
+    it('should create instance without parameters', () => {
       ubidots = new Ubidots();
       expect(ubidots).toBeInstanceOf(Ubidots);
-    });
-
-    it('should create instance with v2 version', () => {
-      ubidots = new Ubidots('v2');
-      expect(ubidots).toBeInstanceOf(Ubidots);
-    });
-
-    it('should throw error for invalid version', () => {
-      expect(() => {
-        new Ubidots('v3');
-      }).toThrow('Unsupported API version: v3. Supported versions: v1, v2');
-    });
-
-    it('should throw error for empty string version', () => {
-      expect(() => {
-        new Ubidots('');
-      }).toThrow('Unsupported API version: . Supported versions: v1, v2');
     });
   });
 
   describe('Ready Event', () => {
     it('should emit ready event after initialization', async () => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
 
       return new Promise<void>(resolve => {
         ubidots.on('ready', data => {
           expect(data).toEqual({
-            version: 'v1',
             timestamp: expect.any(Number),
           });
           expect(data.timestamp).toBeGreaterThan(Date.now() - 100);
-          resolve();
-        });
-      });
-    });
-
-    it('should emit ready event with correct version for v2', async () => {
-      ubidots = new Ubidots('v2');
-
-      return new Promise<void>(resolve => {
-        ubidots.on('ready', data => {
-          expect(data.version).toBe('v2');
           resolve();
         });
       });
@@ -84,7 +55,7 @@ describe('Ubidots Modern Implementation', () => {
 
   describe('Event Emission and Communication', () => {
     beforeEach(() => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
     });
 
     it('should send message to parent via postMessage', () => {
@@ -128,7 +99,7 @@ describe('Ubidots Modern Implementation', () => {
 
   describe('Message Handling from Parent', () => {
     beforeEach(() => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
     });
 
     it('should process valid messages from parent', () => {
@@ -188,18 +159,18 @@ describe('Ubidots Modern Implementation', () => {
 
   describe('Endpoint Validation', () => {
     beforeEach(() => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
     });
 
-    it('should reject unsupported endpoints for on()', () => {
+    it('should reject invalid event format for on()', () => {
       const errorHandler = vi.fn();
       ubidots.on('error', errorHandler);
 
-      const unsubscribe = ubidots.on('v1:unsupported:endpoint', vi.fn());
+      const unsubscribe = ubidots.on('invalid-format', vi.fn());
 
       expect(errorHandler).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Unsupported event endpoint: v1:unsupported:endpoint',
+          message: expect.stringContaining('Invalid event format'),
           context: 'on',
         })
       );
@@ -209,15 +180,15 @@ describe('Ubidots Modern Implementation', () => {
       expect(unsubscribe).not.toThrow();
     });
 
-    it('should reject unsupported endpoints for emit()', () => {
+    it('should reject invalid event format for emit()', () => {
       const errorHandler = vi.fn();
       ubidots.on('error', errorHandler);
 
-      ubidots.emit('v1:unsupported:endpoint', { test: 'data' });
+      ubidots.emit('invalid-format', { test: 'data' });
 
       expect(errorHandler).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Unsupported event endpoint: v1:unsupported:endpoint',
+          message: expect.stringContaining('Invalid event format'),
           context: 'emit',
         })
       );
@@ -250,7 +221,7 @@ describe('Ubidots Modern Implementation', () => {
 
   describe('Multiple Listeners Support', () => {
     beforeEach(() => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
     });
 
     it('should support multiple listeners for same event', () => {
@@ -308,7 +279,7 @@ describe('Ubidots Modern Implementation', () => {
 
   describe('Once Method', () => {
     beforeEach(() => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
     });
 
     it('should execute handler only once', () => {
@@ -345,7 +316,7 @@ describe('Ubidots Modern Implementation', () => {
 
   describe('Error Handling and Isolation', () => {
     beforeEach(() => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
     });
 
     it('should isolate handler errors', () => {
@@ -378,10 +349,10 @@ describe('Ubidots Modern Implementation', () => {
       const errorHandler = vi.fn();
       ubidots.on('error', errorHandler);
 
-      ubidots.emit('v1:unsupported', {});
+      ubidots.emit('invalid-format', {});
 
       expect(errorHandler).toHaveBeenCalledWith({
-        message: 'Unsupported event endpoint: v1:unsupported',
+        message: expect.stringContaining('Invalid event format'),
         name: 'Error',
         stack: expect.any(String),
         context: 'emit',
@@ -392,7 +363,7 @@ describe('Ubidots Modern Implementation', () => {
 
   describe('Destroy Method', () => {
     beforeEach(() => {
-      ubidots = new Ubidots('v1');
+      ubidots = new Ubidots();
     });
 
     it('should emit destroy event', () => {
@@ -427,9 +398,12 @@ describe('Ubidots Modern Implementation', () => {
     });
   });
 
-  describe('Version-Specific Endpoints', () => {
-    it('should handle v1 endpoints correctly', () => {
-      ubidots = new Ubidots('v1');
+  describe('Event Format Validation', () => {
+    beforeEach(() => {
+      ubidots = new Ubidots();
+    });
+
+    it('should accept v1 endpoints', () => {
       const handler = vi.fn();
       ubidots.on('v1:devices:selected', handler);
 
@@ -443,8 +417,7 @@ describe('Ubidots Modern Implementation', () => {
       );
     });
 
-    it('should handle v2 endpoints correctly', () => {
-      ubidots = new Ubidots('v2');
+    it('should accept v2 endpoints', () => {
       const handler = vi.fn();
       ubidots.on('v2:devices:selected', handler);
 
@@ -458,19 +431,54 @@ describe('Ubidots Modern Implementation', () => {
       );
     });
 
-    it('should reject wrong version endpoints', () => {
-      ubidots = new Ubidots('v1');
+    it('should accept any version number in endpoints', () => {
+      const handler = vi.fn();
+      ubidots.on('v999:custom:event', handler);
+
+      ubidots.emit('v999:custom:event', { test: 'data' });
+      expect(mockParent.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'v999:custom:event',
+          payload: { test: 'data' },
+        }),
+        'http://localhost:3000'
+      );
+    });
+
+    it('should reject events without version prefix', () => {
       const errorHandler = vi.fn();
       ubidots.on('error', errorHandler);
 
-      ubidots.emit('v2:devices:selected', { test: 'data' });
+      ubidots.emit('devices:selected', { test: 'data' });
 
       expect(errorHandler).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Unsupported event endpoint: v2:devices:selected',
+          message: expect.stringContaining('Invalid event format'),
           context: 'emit',
         })
       );
+    });
+
+    it('should reject events with invalid format', () => {
+      const errorHandler = vi.fn();
+      ubidots.on('error', errorHandler);
+
+      ubidots.emit('v:missing:number', { test: 'data' });
+
+      expect(errorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Invalid event format'),
+          context: 'emit',
+        })
+      );
+    });
+
+    it('should support multi-level event names', () => {
+      const handler = vi.fn();
+      ubidots.on('v1:devices:settings:updated', handler);
+
+      ubidots.emit('v1:devices:settings:updated', { test: 'data' });
+      expect(mockParent.postMessage).toHaveBeenCalled();
     });
   });
 });
