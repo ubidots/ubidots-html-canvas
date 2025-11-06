@@ -19,6 +19,7 @@ const EventsTypes = {
   SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
   SET_FULL_SCREEN: 'setFullScreen',
   SET_REAL_TIME: 'setRealTime',
+  SELECTED_FILTERS: 'selectFilter',
 };
 
 /**
