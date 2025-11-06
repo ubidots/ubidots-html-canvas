@@ -362,7 +362,6 @@ class Ubidots {
    * @returns {Array} The selected filters.
    */
   get selectedFilters() {
-    console.log({ this: this._eventsCallback, this2: this.selectedDevice });
     return this._selectedFilters;
   }
 
@@ -372,7 +371,6 @@ class Ubidots {
    * @param {Array} selectedFilters - The selected filters to be set.
    */
   _setSelectedFilters = selectedFilters => {
-    console.log('SETTINGS SELECTED FILTERS', selectedFilters);
     this._selectedFilters = selectedFilters;
   };
   /**
