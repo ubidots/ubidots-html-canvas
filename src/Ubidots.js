@@ -472,6 +472,36 @@ class Ubidots {
   };
 
   /**
+   * Handle widget ready V2 event and set variables
+   * @param {Array} payload - Variables array
+   * @private
+   * @memberOf Ubidots
+   */
+  _handleWidgetReady = (payload) => {
+    this.widget.setVariables(payload);
+  };
+
+  /**
+   * Handle widget data V2 event and set data to widget
+   * @param {*} payload - Widget data
+   * @private
+   * @memberOf Ubidots
+   */
+  _handleWidgetData = (payload) => {
+    this.widget.setData(payload);
+  };
+
+  /**
+   * Handle widget error V2 event and set error state to widget
+   * @param {*} payload - Widget error
+   * @private
+   * @memberOf Ubidots
+   */
+  _handleWidgetError = (payload) => {
+    this.widget.setError(payload);
+  };
+
+  /**
    * Make a window listener event to receive dashboard messages and set data values to class attributes
    * @param {Object} event - Message event from window
    * @private
@@ -480,7 +510,7 @@ class Ubidots {
   _listenMessage = event => {
     if (event.origin !== window.location.origin) return;
     const { event: eventName, payload } = event.data;
-
+    // Internal state callbacks
     const eventHandlers = {
       // V1 events
       [EVENTS.V1.IS_REALTIME_ACTIVE]: this._setRealTime,
@@ -512,9 +542,13 @@ class Ubidots {
       // V2 Dashboard self events
       [EVENTS.V2.DASHBOARD.SELF]: this._setDashboardObject,
 
-
+      // Widget events
+      [EVENTS.V2.WIDGET.DATA]: this._handleWidgetData,
+      [EVENTS.V2.WIDGET.READY]: this._handleWidgetReady,
+      [EVENTS.V2.WIDGET.ERROR]: this._handleWidgetError,
     };
 
+    // External callbacks
     const handler = eventHandlers[eventName];
     if (handler) handler(payload);
 
@@ -537,19 +571,3 @@ class Ubidots {
 
 export default Ubidots;
 export { EVENTS };
-
-
-/*
-* [EventsTypes.IS_REALTIME_ACTIVE]: this._setRealTime,
-      [EventsTypes.RECEIVED_HEADERS]: this._setHeaders,
-      [EventsTypes.RECEIVED_JWT_TOKEN]: this._setJWTToken,
-      [EventsTypes.RECEIVED_TOKEN]: this._setToken,
-      [EventsTypes.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
-      [EventsTypes.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
-      [EventsTypes.SELECTED_DEVICE]: this._setSelectedDevice,
-      [EventsTypes.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
-      [EventsTypes.SELECTED_DEVICES]: this._setSelectedDevices,
-      [EventsTypes.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
-      [EventsTypes.SELECTED_FILTERS]: this._setSelectedFilters,
-*
-* */
