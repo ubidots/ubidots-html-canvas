@@ -134,6 +134,7 @@ class Ubidots {
    */
   setDashboardDevice(deviceId) {
     this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_DEVICE, payload: deviceId });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceId });
   }
 
   /**
@@ -143,6 +144,7 @@ class Ubidots {
    */
   setDashboardMultipleDevices(deviceIds) {
     this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_MULTIPLE_DEVICES, payload: deviceIds });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceIds });
   }
 
   /**
@@ -163,6 +165,7 @@ class Ubidots {
    */
   setDashboardDateRange(range) {
     this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_DATE_RANGE, payload: range });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.DATERANGE, payload: range });
   }
 
   /**
@@ -172,6 +175,7 @@ class Ubidots {
    */
   setRealTime(enableRealTime) {
     this._sendPostMessage({ event: EVENTS.V1.SET_REALTIME, payload: enableRealTime });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.RT, payload: enableRealTime });
   }
 
   /**
@@ -180,6 +184,7 @@ class Ubidots {
    */
   refreshDashboard() {
     this._sendPostMessage({ event: EVENTS.V1.REFRESH_DASHBOARD });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.REFRESHED });
   }
 
   /**
@@ -189,6 +194,7 @@ class Ubidots {
    */
   setFullScreen(fullScreenAction) {
     this._sendPostMessage({ event: EVENTS.V1.SET_FULLSCREEN, payload: fullScreenAction });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.FULLSCREEN, payload: fullScreenAction });
   }
 
   /**
@@ -199,10 +205,6 @@ class Ubidots {
    */
   get token() {
     return this._token;
-  }
-
-  onWidgetReady() {
-    this._eventsCallback.widgetReady = callback;
   }
 
 
