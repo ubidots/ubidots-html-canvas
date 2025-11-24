@@ -64,7 +64,6 @@ const EVENTS = {
   },
 };
 
-
 const getAllEventValues = (obj) => {
   const values = [];
 
@@ -84,7 +83,6 @@ const getAllEventValues = (obj) => {
   return values;
 };
 const plainEvents = getAllEventValues(EVENTS);
-
 
 /**
  * Create a listener to be able to listen to the Ubidots messages.
@@ -206,7 +204,6 @@ class Ubidots {
   get token() {
     return this._token;
   }
-
 
   /**
    * Insert the widget sepecific settings from the Plugin Widget
