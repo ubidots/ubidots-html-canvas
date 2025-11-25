@@ -64,10 +64,10 @@ const EVENTS = {
   },
 };
 
-const getAllEventValues = (obj) => {
+const getAllEventValues = obj => {
   const values = [];
 
-  const getDeepValues = (node) => {
+  const getDeepValues = node => {
     for (const key in node) {
       const value = node[key];
 
@@ -450,7 +450,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _handleFullScreen = (payload) => {
+  _handleFullScreen = payload => {
     if (typeof this._eventsCallback[EVENTS.V1.SET_FULLSCREEN] === 'function') {
       this._eventsCallback[EVENTS.V1.SET_FULLSCREEN](payload);
     }
@@ -462,7 +462,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _handleDeviceSelected = (payload) => {
+  _handleDeviceSelected = payload => {
     if (Array.isArray(payload)) {
       this._setSelectedDevices(payload);
     } else {
@@ -476,7 +476,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _handleWidgetReady = (payload) => {
+  _handleWidgetReady = payload => {
     this.widget.setVariables(payload);
   };
 
@@ -486,7 +486,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _handleWidgetData = (payload) => {
+  _handleWidgetData = payload => {
     this.widget.setData(payload);
   };
 
@@ -496,7 +496,7 @@ class Ubidots {
    * @private
    * @memberOf Ubidots
    */
-  _handleWidgetError = (payload) => {
+  _handleWidgetError = payload => {
     this.widget.setError(payload);
   };
 
