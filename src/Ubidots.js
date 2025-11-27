@@ -10,16 +10,17 @@ const EventsTypes = {
   REFRESH_DASHBOARD: 'refreshDashboard',
   SELECTED_DASHBOARD_DATE_RANGE: 'selectedDashboardDateRange',
   SELECTED_DASHBOARD_OBJECT: 'selectedDashboardObject',
-  SELECTED_DEVICE: 'selectedDevice',
-  SELECTED_DEVICES: 'selectedDevices',
   SELECTED_DEVICE_OBJECT: 'selectedDeviceObject',
   SELECTED_DEVICE_OBJECTS: 'selectedDeviceObjects',
+  SELECTED_DEVICE: 'selectedDevice',
+  SELECTED_DEVICES: 'selectedDevices',
+  SELECTED_FILTERS: 'selectFilter',
   SET_DASHBOARD_DATE_RANGE: 'setDashboardDateRange',
   SET_DASHBOARD_DEVICE: 'setDashboardDevice',
+  SET_DASHBOARD_LAYER: 'setDashboardLayer',
   SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
   SET_FULL_SCREEN: 'setFullScreen',
   SET_REAL_TIME: 'setRealTime',
-  SELECTED_FILTERS: 'selectFilter',
 };
 
 /**
@@ -83,10 +84,11 @@ class Ubidots {
   /**
    * Set Dashboard Layer
    * @param {String} layerId - Layer id
+   * @param {Object} [params] - Layer params
    * @memberOf Ubidots
    */
-  setDashboardLayer(layerId) {
-    this._sendPostMessage({ event: 'setDashboardLayer', payload: layerId });
+  setDashboardLayer(layerId, params = {}) {
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_LAYER, payload: { layerId, params } });
   }
 
   /**
