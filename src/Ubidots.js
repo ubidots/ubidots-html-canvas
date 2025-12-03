@@ -17,6 +17,7 @@ const EventsTypes = {
   SELECTED_FILTERS: 'selectFilter',
   SET_DASHBOARD_DATE_RANGE: 'setDashboardDateRange',
   SET_DASHBOARD_DEVICE: 'setDashboardDevice',
+  SET_DASHBOARD_DEVICES: 'setDashboardDevices',
   SET_DASHBOARD_LAYER: 'setDashboardLayer',
   SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
   SET_FULL_SCREEN: 'setFullScreen',
@@ -67,15 +68,26 @@ class Ubidots {
    * Set Dashboard Device
    * @param {String} deviceId - Numeric device id or API label (starting with ~)
    * @memberOf Ubidots
+   * @deprecated Use setDashboardDevices instead
    */
   setDashboardDevice(deviceId) {
     this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DEVICE, payload: deviceId });
   }
 
   /**
-   * Set Multiple Dashboard Devices
-   * @param {Array<String>} deviceIds - An array of device ids
+   * Set Dashboard Devices
+   * @param {Array<String>|String} deviceIds - An array of device ids or API labels (starting with ~), or a comma-separated string of ids
    * @memberOf Ubidots
+   */
+  setDashboardDevices(deviceIds) {
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DEVICES, payload: deviceIds });
+  }
+
+  /**
+   * Set Multiple Dashboard Devices
+   * @param {Array<String>|String} deviceIds - An array of device ids, or a comma-separated string of ids
+   * @memberOf Ubidots
+   * @deprecated Use setDashboardDevices instead
    */
   setDashboardMultipleDevices(deviceIds) {
     this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_MULTIPLE_DEVICES, payload: deviceIds });
