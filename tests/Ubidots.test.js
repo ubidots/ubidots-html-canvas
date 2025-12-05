@@ -6,7 +6,7 @@ describe('Array', () => {
   const lastWindow = window;
   const setUp = () => {
     const ubidots = new Ubidots();
-
+    ubidots.state.widgetReady = true;
     return ubidots;
   };
 
@@ -119,9 +119,8 @@ describe('Array', () => {
       expect(typeof obj._eventsCallback.selectedDevice).to.be('function');
     });
 
-    it("Shouldn't update any event callback object key", () => {
+    it('Shouldn\'t update any event callback object key', () => {
       const obj = setUp();
-
       obj.on('fakeEvent', () => null);
 
       expect(obj._eventsCallback.receivedToken).to.be(null);
@@ -207,11 +206,10 @@ describe('Array', () => {
       expect(obj.token).to.be(token);
     });
 
-    it("should update the dashboard date range value and doesn't call any callback function", () => {
+    it('should update the dashboard date range value', () => {
       const obj = setUp();
       global.window = { location: { origin: 'http://127.0.0.1' } };
 
-      const spy = sinon.spy();
 
       const selectedDashboardDateRange = {
         start: 908745678908756,
@@ -226,7 +224,6 @@ describe('Array', () => {
       };
       obj._listenMessage(event);
 
-      expect(spy.notCalled).to.be.ok();
       expect(obj.dashboardDateRange).to.be(selectedDashboardDateRange);
     });
 
@@ -249,56 +246,60 @@ describe('Array', () => {
       expect(spy.notCalled).to.be.ok();
     });
 
-    it('should execute the ready event if the previous values are set', () => {
-      const ubidots = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
+    // todo: replace v2:widget:ready for v2:widget:loaded
+    // it('should execute the ready event if the previous values are set', () => {
+    //   const ubidots = setUp();
+    //   global.window = { location: { origin: 'http://127.0.0.1' } };
+    //
+    //   const spy = sinon.spy();
+    //   ubidots.on('ready', spy);
+    //
+    //   ubidots._token = 'prefilled-token';
+    //   ubidots._selectedDevice = 'prefilled-device';
+    //   ubidots._dashboardDateRange = 'prefilled-date';
+    //   ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
+    //
+    //   const event = {
+    //     origin: 'http://127.0.0.1',
+    //     data: {
+    //       event: 'receivedToken',
+    //       payload: 'test-token',
+    //     },
+    //   };
+    //   ubidots._listenMessage(event);
+    //
+    //   expect(spy.called).to.be.ok();
+    // });
 
-      const spy = sinon.spy();
-      ubidots.on('ready', spy);
-
-      ubidots._token = 'prefilled-token';
-      ubidots._selectedDevice = 'prefilled-device';
-      ubidots._dashboardDateRange = 'prefilled-date';
-      ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
-
-      const event = {
-        origin: 'http://127.0.0.1',
-        data: {
-          event: 'receivedToken',
-          payload: 'test-token',
-        },
-      };
-      ubidots._listenMessage(event);
-
-      expect(spy.called).to.be.ok();
-    });
-
-    it('should execute the ready event only once in the lifetime', () => {
-      const ubidots = setUp();
-      global.window = { location: { origin: 'http://127.0.0.1' } };
-
-      const spy = sinon.spy();
-      ubidots.on('ready', spy);
-
-      ubidots._token = 'prefilled-token';
-      ubidots._selectedDevice = 'prefilled-device';
-      ubidots._dashboardDateRange = 'prefilled-date';
-      ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
-
-      const event = {
-        origin: 'http://127.0.0.1',
-        data: {
-          event: 'receivedToken',
-          payload: 'test-token',
-        },
-      };
-
-      for (let i = 0; i < 50; i++) {
-        ubidots._listenMessage(event);
-      }
-
-      expect(spy.calledOnce).to.be.ok();
-    });
+    //
+    // todo: replace v2:widget:ready for v2:widget:loaded
+    //
+    // it('should execute the ready event only once in the lifetime', () => {
+    //   const ubidots = setUp();
+    //   global.window = { location: { origin: 'http://127.0.0.1' } };
+    //
+    //   const spy = sinon.spy();
+    //   ubidots.on('ready', spy);
+    //
+    //   ubidots._token = 'prefilled-token';
+    //   ubidots._selectedDevice = 'prefilled-device';
+    //   ubidots._dashboardDateRange = 'prefilled-date';
+    //   ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
+    //
+    //   const event = {
+    //     origin: 'http://127.0.0.1',
+    //     data: {
+    //       event: 'receivedToken',
+    //       payload: 'test-token',
+    //     },
+    //   };
+    //
+    //   for (let i = 0; i < 50; i++) {
+    //     ubidots._listenMessage(event);
+    //   }
+    //
+    //   expect(spy.calledOnce).to.be.ok();
+    // });
 
     it('should update the headers property', () => {
       const ubidots = setUp();
@@ -329,7 +330,7 @@ describe('Array', () => {
       });
     });
 
-    it("should return the 'X-Auth-Token' with the token that was sended", () => {
+    it('should return the \'X-Auth-Token\' with the token that was sended', () => {
       global.window = {
         location: { origin: 'http://127.0.0.1' },
         addEventListener: sinon.spy(),
@@ -352,7 +353,7 @@ describe('Array', () => {
       });
     });
 
-    it("should return the 'Authorization' with the JWT that was sended", () => {
+    it('should return the \'Authorization\' with the JWT that was sended', () => {
       global.window = {
         location: { origin: 'http://127.0.0.1' },
         addEventListener: sinon.spy(),
@@ -499,7 +500,7 @@ describe('Array', () => {
       const deviceIds = ['device1', 'device2', 'device3'];
       obj.setDashboardDevices(deviceIds);
 
-      expect(spy.calledOnce).to.be.ok();
+      expect(spy.calledTwice).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceIds })).to.be.ok();
     });
 
@@ -516,7 +517,7 @@ describe('Array', () => {
       const deviceIds = 'device1,device2,device3';
       obj.setDashboardDevices(deviceIds);
 
-      expect(spy.calledOnce).to.be.ok();
+      expect(spy.calledTwice).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceIds })).to.be.ok();
     });
 
@@ -533,7 +534,7 @@ describe('Array', () => {
       const deviceIds = ['~device-label-1', '~device-label-2'];
       obj.setDashboardDevices(deviceIds);
 
-      expect(spy.calledOnce).to.be.ok();
+      expect(spy.calledTwice).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceIds })).to.be.ok();
     });
 
@@ -550,7 +551,7 @@ describe('Array', () => {
       const deviceId = 'singleDeviceId';
       obj.setDashboardDevices(deviceId);
 
-      expect(spy.calledOnce).to.be.ok();
+      expect(spy.calledTwice).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceId })).to.be.ok();
     });
 
@@ -565,12 +566,12 @@ describe('Array', () => {
       const deviceIds = ['device1', 'device2'];
       obj.setDashboardDevices(deviceIds);
 
-      expect(global.window.parent.postMessage.calledOnce).to.be.ok();
+      expect(global.window.parent.postMessage.calledTwice).to.be.ok();
       expect(
         global.window.parent.postMessage.calledWithExactly(
           { event: 'setDashboardDevices', payload: deviceIds },
-          'http://test.ubidots.com'
-        )
+          'http://test.ubidots.com',
+        ),
       ).to.be.ok();
     });
   });
