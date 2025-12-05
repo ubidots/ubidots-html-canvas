@@ -4,27 +4,26 @@ import { Ubidots as UJL } from '@ubidots/ubidots-javascript-library';
 const EVENTS = {
   V1: {
     // Dashboard events
-    SELECTED_DEVICE: 'selectedDevice',
-    SELECTED_DEVICES: 'selectedDevices',
+    IS_REALTIME_ACTIVE: 'isRealTimeActive',
+    OPEN_DRAWER: 'openDrawer',
+    RECEIVED_HEADERS: 'receivedHeaders',
+    RECEIVED_JWT_TOKEN: 'receivedJWTToken',
+    RECEIVED_TOKEN: 'receivedToken',
+    REFRESH_DASHBOARD: 'refreshDashboard',
+    SELECTED_DASHBOARD_DATE_RANGE: 'selectedDashboardDateRange',
+    SELECTED_DASHBOARD_OBJECT: 'selectedDashboardObject',
     SELECTED_DEVICE_OBJECT: 'selectedDeviceObject',
     SELECTED_DEVICE_OBJECTS: 'selectedDeviceObjects',
+    SELECTED_DEVICE: 'selectedDevice',
+    SELECTED_DEVICES: 'selectedDevices',
     SELECTED_FILTERS: 'selectedFilters',
-    SELECTED_VARIABLES: 'selectedVariables',
-    SELECTED_DATE_RANGE: 'selectedDashboardDateRange',
-    SET_REALTIME: 'setRealTime',
-    REFRESH_DASHBOARD: 'refreshDashboard',
-    SET_FULLSCREEN: 'setFullScreen',
-    IS_REALTIME_ACTIVE: 'isRealTimeActive',
-    SELECTED_DASHBOARD_OBJECT: 'selectedDashboardObject',
-    SET_DASHBOARD_DATE_RANGE: 'setDashboardDateRange',
+    SELECTED_DATE_RANGE: 'setDashboardDateRange',
     SET_DASHBOARD_DEVICE: 'setDashboardDevice',
-    SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
+    SET_DASHBOARD_DEVICES: 'setDashboardDevices',
     SET_DASHBOARD_LAYER: 'setDashboardLayer',
-    RECEIVED_HEADERS: 'receivedHeaders',
-
-    // Auth events
-    RECEIVED_TOKEN: 'receivedToken',
-    RECEIVED_JWT_TOKEN: 'receivedJWTToken',
+    SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
+    SET_FULL_SCREEN: 'setFullScreen',
+    SET_REAL_TIME: 'setRealTime',
   },
 
   V2: {
@@ -106,10 +105,19 @@ class Ubidots {
       selectedFilters: null,
       variables: [],
     };
+
+    this.state = {
+      widgetReady: false,
+    };
+
     this._headers = {};
     this.widget = new Widget(window.widgetId);
     this.api = UJL;
     window.addEventListener('message', this._listenMessage);
+  }
+
+  _getWidgetEventWithId(eventName) {
+    return `${eventName}:${this.widget.getId()}`;
   }
 
   /**
@@ -129,16 +137,35 @@ class Ubidots {
    * Set Dashboard Device
    * @param {String} deviceId - Numeric device id or API label (starting with ~)
    * @memberOf Ubidots
+   * @deprecated Use setDashboardDevices instead
    */
   setDashboardDevice(deviceId) {
     this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_DEVICE, payload: deviceId });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceId });
   }
 
+  _setWidgetReady() {
+    if (this.state.widgetReady) return;
+    const widgetEventName = this._getWidgetEventWithId(EVENTS.V2.WIDGET.READY);
+    this._sendPostMessage({ event: widgetEventName, payload: { ready: true } });
+    this.state.widgetReady = true;
+  }
+
+  /**
+   * Set Dashboard Devices
+   * @param {Array<String>|String} deviceIds - An array of device ids or API labels (starting with ~), or a comma-separated string of ids
+   * @memberOf Ubidots
+   */
+  setDashboardDevices(deviceIds) {
+    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_DEVICES, payload: deviceIds });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceIds });
+  }
+
   /**
    * Set Multiple Dashboard Devices
-   * @param {Array<String>} deviceIds - An array of device ids
+   * @param {Array<String>|String} deviceIds - An array of device ids, or a comma-separated string of ids
    * @memberOf Ubidots
+   * @deprecated Use setDashboardDevices instead
    */
   setDashboardMultipleDevices(deviceIds) {
     this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_MULTIPLE_DEVICES, payload: deviceIds });
@@ -148,21 +175,23 @@ class Ubidots {
   /**
    * Set Dashboard Layer
    * @param {String} layerId - Layer id
+   * @param {Object} [params] - Layer params
    * @memberOf Ubidots
    */
-  setDashboardLayer(layerId) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_LAYER, payload: layerId });
+  setDashboardLayer(layerId, params = {}) {
+    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_LAYER, payload: { layerId, params } });
+    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.LAYER, payload: { layerId, params } });
   }
 
   /**
    * Set Dashboard Data Range
-   * @param {Object}
    * @property {number} start - Initial selected date
    * @property {number} end - End selected date
    * @memberOf Ubidots
+   * @param range
    */
   setDashboardDateRange(range) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_DATE_RANGE, payload: range });
+    this._sendPostMessage({ event: EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE, payload: range });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.DATERANGE, payload: range });
   }
 
@@ -442,6 +471,10 @@ class Ubidots {
     if (plainEvents.includes(eventName)) {
       this._eventsCallback[eventName] = callback;
     }
+
+    if (!this.state.widgetReady) {
+      this._setWidgetReady();
+    }
   };
 
   /**
@@ -569,4 +602,3 @@ class Ubidots {
 }
 
 export default Ubidots;
-export { EVENTS };
