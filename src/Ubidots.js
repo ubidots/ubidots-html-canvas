@@ -542,7 +542,8 @@ class Ubidots {
   _listenMessage = event => {
     if (event.origin !== window.location.origin) return;
     const { event: eventName, payload } = event.data;
-    // Internal state callbacks
+
+    // event: EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE
     const eventHandlers = {
       // V1 events
       [EVENTS.V1.IS_REALTIME_ACTIVE]: this._setRealTime,
@@ -556,6 +557,7 @@ class Ubidots {
       [EVENTS.V1.SELECTED_DEVICES]: this._setSelectedDevices,
       [EVENTS.V1.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
       [EVENTS.V1.SELECTED_FILTERS]: this._setSelectedFilters,
+      [EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
 
       // V2 Auth events
       [EVENTS.V2.AUTH.TOKEN]: this._setToken,
