@@ -46,8 +46,7 @@ const EVENTS = {
       },
       DEVICES: {
         SELECTED: 'v2:dashboard:devices:selected',
-        SELECTED_DEVICE_OBJECT: 'v2:dashboard:devices:object',
-        SELECTED_DEVICE_OBJECTS: 'v2:dashboard:devices:objects',
+        ALL_DEVICES: 'v2:dashboard:devices:self',
       },
       SELF: 'v2:dashboard:self',
       ALL: 'v2:dashboard:*',
@@ -103,11 +102,12 @@ class Ubidots {
       selectedDevices: null,
       selectedDeviceObjects: null,
       selectedFilters: null,
-      variables: [],
     };
 
     this.state = {
       widgetReady: false,
+      dashboardDevices: [],
+      variables: [],
     };
 
     this._headers = {};
@@ -405,6 +405,14 @@ class Ubidots {
     this._deviceObject = deviceObject;
   };
 
+  _setDashboardDevices = devices => {
+    this.state.dashboardDevices = devices;
+  };
+
+  get dashboardDevices() {
+    return this.state.dashboardDevices;
+  }
+
   /**
    * Get the selected device objects.
    * @returns {Array} The selected device objects.
@@ -542,14 +550,12 @@ class Ubidots {
   _listenMessage = event => {
     if (event.origin !== window.location.origin) return;
     const { event: eventName, payload } = event.data;
-
-    // event: EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE
     const eventHandlers = {
       // V1 events
       [EVENTS.V1.IS_REALTIME_ACTIVE]: this._setRealTime,
       [EVENTS.V1.RECEIVED_HEADERS]: this._setHeaders,
       [EVENTS.V1.RECEIVED_JWT_TOKEN]: this._setJWTToken,
-      [EVENTS.V1.RECEIVED_TOKEN]: this._setToken,
+      [EVENTS.V1.RECEIVED_TOKEN]: this._setToken,l
       [EVENTS.V1.SELECTED_DATE_RANGE]: this._setDashboardDateRange,
       [EVENTS.V1.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
       [EVENTS.V1.SELECTED_DEVICE]: this._setSelectedDevice,
@@ -572,6 +578,7 @@ class Ubidots {
 
       // V2 Dashboard device events
       [EVENTS.V2.DASHBOARD.DEVICES.SELECTED]: this._handleDeviceSelected,
+      [EVENTS.V2.DASHBOARD.DEVICES.ALL_DEVICES]: this._setDashboardDevices,
 
       // V2 Dashboard self events
       [EVENTS.V2.DASHBOARD.SELF]: this._setDashboardObject,
