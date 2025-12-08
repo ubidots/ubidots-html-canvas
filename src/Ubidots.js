@@ -55,6 +55,7 @@ const EVENTS = {
     // Widget category (identifican emisor por widgetId)
     WIDGET: {
       DATA: 'v2:widget:data',
+      LOADED: 'v2:widget:loaded',
       READY: 'v2:widget:ready',
       ERROR: 'v2:widget:error',
       ALL: 'v2:widget:*',
@@ -144,9 +145,9 @@ class Ubidots {
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceId });
   }
 
-  _setWidgetReady() {
+  _setWidgetLoaded() {
     if (this.state.widgetReady) return;
-    const widgetEventName = this._getWidgetEventWithId(EVENTS.V2.WIDGET.READY);
+    const widgetEventName = this._getWidgetEventWithId(EVENTS.V2.WIDGET.LOADED);
     this._sendPostMessage({ event: widgetEventName, payload: { ready: true } });
     this.state.widgetReady = true;
   }
@@ -481,7 +482,7 @@ class Ubidots {
     }
 
     if (!this.state.widgetReady) {
-      this._setWidgetReady();
+      this._setWidgetLoaded();
     }
   };
 
@@ -555,7 +556,7 @@ class Ubidots {
       [EVENTS.V1.IS_REALTIME_ACTIVE]: this._setRealTime,
       [EVENTS.V1.RECEIVED_HEADERS]: this._setHeaders,
       [EVENTS.V1.RECEIVED_JWT_TOKEN]: this._setJWTToken,
-      [EVENTS.V1.RECEIVED_TOKEN]: this._setToken,l
+      [EVENTS.V1.RECEIVED_TOKEN]: this._setToken,
       [EVENTS.V1.SELECTED_DATE_RANGE]: this._setDashboardDateRange,
       [EVENTS.V1.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
       [EVENTS.V1.SELECTED_DEVICE]: this._setSelectedDevice,
