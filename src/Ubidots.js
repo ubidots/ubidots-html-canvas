@@ -4,6 +4,7 @@ import { Ubidots as UJL } from '@ubidots/ubidots-javascript-library';
 const EVENTS = {
   V1: {
     // Dashboard events
+    READY: 'ready',
     IS_REALTIME_ACTIVE: 'isRealTimeActive',
     OPEN_DRAWER: 'openDrawer',
     RECEIVED_HEADERS: 'receivedHeaders',
@@ -22,7 +23,7 @@ const EVENTS = {
     SET_DASHBOARD_DEVICES: 'setDashboardDevices',
     SET_DASHBOARD_LAYER: 'setDashboardLayer',
     SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
-    SET_FULL_SCREEN: 'setFullScreen',
+    SET_FULLSCREEN: 'setFullScreen',
     SET_REAL_TIME: 'setRealTime',
   },
 
@@ -55,10 +56,10 @@ const EVENTS = {
     // Widget category (identifican emisor por widgetId)
     WIDGET: {
       DATA: 'v2:widget:data',
-      LOADED: 'v2:widget:loaded',
       READY: 'v2:widget:ready',
       ERROR: 'v2:widget:error',
       ALL: 'v2:widget:*',
+      OPEN_DRAWER: 'v2:widget:openDrawer',
     },
   },
 };
@@ -145,13 +146,6 @@ class Ubidots {
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceId });
   }
 
-  _setWidgetLoaded() {
-    if (this.state.widgetReady) return;
-    const widgetEventName = this._getWidgetEventWithId(EVENTS.V2.WIDGET.LOADED);
-    this._sendPostMessage({ event: widgetEventName, payload: { ready: true } });
-    this.state.widgetReady = true;
-  }
-
   /**
    * Set Dashboard Devices
    * @param {Array<String>|String} deviceIds - An array of device ids or API labels (starting with ~), or a comma-separated string of ids
@@ -223,6 +217,18 @@ class Ubidots {
   setFullScreen(fullScreenAction) {
     this._sendPostMessage({ event: EVENTS.V1.SET_FULLSCREEN, payload: fullScreenAction });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.FULLSCREEN, payload: fullScreenAction });
+  }
+
+  /**
+   * Open Drawer
+   * @param {Object} drawerInfo
+   * @property {String} url - url to open in the drawer
+   * @property {Number} width - drawer's width
+   * @memberOf Ubidots
+   */
+  openDrawer(drawerInfo) {
+    this._sendPostMessage({ event: EVENTS.V1.OPEN_DRAWER, payload: { drawerInfo, id: this.widget.getId() } });
+    this._sendPostMessage({ event: EVENTS.V2.WIDGET.OPEN_DRAWER, payload: { drawerInfo, id: this.widget.getId() } });
   }
 
   /**
@@ -480,10 +486,6 @@ class Ubidots {
     if (plainEvents.includes(eventName)) {
       this._eventsCallback[eventName] = callback;
     }
-
-    if (!this.state.widgetReady) {
-      this._setWidgetLoaded();
-    }
   };
 
   /**
@@ -542,6 +544,13 @@ class Ubidots {
     this.widget.setError(payload);
   };
 
+  // eslint-disable-next-line class-methods-use-this
+  _emitReady = () => {
+    const eventNameWithId = this._getWidgetEventWithId(EVENTS.V2.WIDGET.READY);
+    window.parent.postMessage({ event: EVENTS.V1.READY, payload: { ready: true } }, window.location.origin);
+    window.parent.postMessage({ event: eventNameWithId, payload: { ready: true } }, window.location.origin);
+  };
+
   /**
    * Make a window listener event to receive dashboard messages and set data values to class attributes
    * @param {Object} event - Message event from window
@@ -551,6 +560,8 @@ class Ubidots {
   _listenMessage = event => {
     if (event.origin !== window.location.origin) return;
     const { event: eventName, payload } = event.data;
+    if (!eventName) return;
+
     const eventHandlers = {
       // V1 events
       [EVENTS.V1.IS_REALTIME_ACTIVE]: this._setRealTime,
@@ -560,8 +571,8 @@ class Ubidots {
       [EVENTS.V1.SELECTED_DATE_RANGE]: this._setDashboardDateRange,
       [EVENTS.V1.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
       [EVENTS.V1.SELECTED_DEVICE]: this._setSelectedDevice,
-      [EVENTS.V1.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
       [EVENTS.V1.SELECTED_DEVICES]: this._setSelectedDevices,
+      [EVENTS.V1.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
       [EVENTS.V1.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
       [EVENTS.V1.SELECTED_FILTERS]: this._setSelectedFilters,
       [EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
@@ -600,13 +611,13 @@ class Ubidots {
 
     if (
       (this._token || this._jwtToken) &&
-      this._selectedDevice !== undefined &&
       this._dashboardDateRange !== undefined &&
       this._dashboardObject !== undefined &&
-      typeof this._eventsCallback.ready === 'function'
+      !this.state.widgetReady
     ) {
-      this._eventsCallback.ready();
-      this._eventsCallback.ready = null;
+      this._eventsCallback.ready?.();
+      this.state.widgetReady = true;
+      this._emitReady();
     }
   };
 }
