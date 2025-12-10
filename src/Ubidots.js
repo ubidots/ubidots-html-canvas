@@ -44,6 +44,7 @@ const EVENTS = {
         RT: 'v2:dashboard:settings:rt',
         REFRESHED: 'v2:dashboard:settings:refreshed',
         FULLSCREEN: 'v2:dashboard:settings:fullscreen',
+        LAYER: 'v2:dashboard:settings:layer',
       },
       DEVICES: {
         SELECTED: 'v2:dashboard:devices:selected',
@@ -53,7 +54,6 @@ const EVENTS = {
       ALL: 'v2:dashboard:*',
     },
 
-    // Widget category (identifican emisor por widgetId)
     WIDGET: {
       DATA: 'v2:widget:data',
       READY: 'v2:widget:ready',
