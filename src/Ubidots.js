@@ -1,88 +1,6 @@
 import { Widget } from './Widget';
 import { Ubidots as UJL } from '@ubidots/ubidots-javascript-library';
-
-const EVENTS = {
-  V1: {
-    // Dashboard events
-    READY: 'ready',
-    IS_REALTIME_ACTIVE: 'isRealTimeActive',
-    OPEN_DRAWER: 'openDrawer',
-    RECEIVED_HEADERS: 'receivedHeaders',
-    RECEIVED_JWT_TOKEN: 'receivedJWTToken',
-    RECEIVED_TOKEN: 'receivedToken',
-    REFRESH_DASHBOARD: 'refreshDashboard',
-    SELECTED_DASHBOARD_DATE_RANGE: 'selectedDashboardDateRange',
-    SELECTED_DASHBOARD_OBJECT: 'selectedDashboardObject',
-    SELECTED_DEVICE_OBJECT: 'selectedDeviceObject',
-    SELECTED_DEVICE_OBJECTS: 'selectedDeviceObjects',
-    SELECTED_DEVICE: 'selectedDevice',
-    SELECTED_DEVICES: 'selectedDevices',
-    SELECTED_FILTERS: 'selectedFilters',
-    SELECTED_DATE_RANGE: 'setDashboardDateRange',
-    SET_DASHBOARD_DEVICE: 'setDashboardDevice',
-    SET_DASHBOARD_DEVICES: 'setDashboardDevices',
-    SET_DASHBOARD_LAYER: 'setDashboardLayer',
-    SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
-    SET_FULLSCREEN: 'setFullScreen',
-    SET_REAL_TIME: 'setRealTime',
-  },
-
-  V2: {
-    // Auth category
-    AUTH: {
-      TOKEN: 'v2:auth:token',
-      JWT: 'v2:auth:jwt',
-      HEADERS: 'v2:auth:headers',
-      ALL: 'v2:auth:*',
-    },
-
-    // Dashboard category
-    DASHBOARD: {
-      SETTINGS: {
-        DATERANGE: 'v2:dashboard:settings:daterange',
-        FILTERS: 'v2:dashboard:settings:filters',
-        RT: 'v2:dashboard:settings:rt',
-        REFRESHED: 'v2:dashboard:settings:refreshed',
-        FULLSCREEN: 'v2:dashboard:settings:fullscreen',
-        LAYER: 'v2:dashboard:settings:layer',
-      },
-      DEVICES: {
-        SELECTED: 'v2:dashboard:devices:selected',
-        ALL_DEVICES: 'v2:dashboard:devices:self',
-      },
-      SELF: 'v2:dashboard:self',
-      ALL: 'v2:dashboard:*',
-    },
-
-    WIDGET: {
-      DATA: 'v2:widget:data',
-      READY: 'v2:widget:ready',
-      ERROR: 'v2:widget:error',
-      ALL: 'v2:widget:*',
-      OPEN_DRAWER: 'v2:widget:openDrawer',
-    },
-  },
-};
-
-const getAllEventValues = obj => {
-  const values = [];
-
-  const getDeepValues = node => {
-    for (const key in node) {
-      const value = node[key];
-
-      if (typeof value === 'string') {
-        values.push(value);
-      } else if (typeof value === 'object' && value !== null) {
-        getDeepValues(value);
-      }
-    }
-  };
-
-  getDeepValues(obj);
-  return values;
-};
-const plainEvents = getAllEventValues(EVENTS);
+import { EVENTS, plainEvents } from './events';
 
 /**
  * Create a listener to be able to listen to the Ubidots messages.
@@ -475,6 +393,23 @@ class Ubidots {
   _setSelectedFilters = selectedFilters => {
     this._selectedFilters = selectedFilters;
   };
+
+  _parseEvent = eventName => {
+    if (!plainEvents.includes(eventName))
+      return {
+        isValidEvent: false,
+        eventName,
+      };
+
+    const isWidgetEvent = eventName.includes('v2:widget:');
+
+    if (isWidgetEvent) {
+      const eventNameWithId = this._getWidgetEventWithId(eventName);
+      return { isValidEvent: true, eventName: eventNameWithId };
+    }
+    return { isValidEvent: true, eventName };
+  };
+
   /**
    * Make a window listener event to receive dashboard messages
    * @param {String} eventName - Event name to listen
@@ -483,8 +418,9 @@ class Ubidots {
    * @memberOf Ubidots
    */
   on = (eventName, callback) => {
-    if (plainEvents.includes(eventName)) {
-      this._eventsCallback[eventName] = callback;
+    const { isValidEvent, eventName: parsedEventName } = this._parseEvent(eventName);
+    if (isValidEvent) {
+      this._eventsCallback[parsedEventName] = callback;
     }
   };
 
@@ -547,6 +483,9 @@ class Ubidots {
   // eslint-disable-next-line class-methods-use-this
   _emitReady = () => {
     const eventNameWithId = this._getWidgetEventWithId(EVENTS.V2.WIDGET.READY);
+
+    this._eventsCallback[eventNameWithId]?.();
+    this._eventsCallback?.ready();
     window.parent.postMessage({ event: EVENTS.V1.READY, payload: { ready: true } }, window.location.origin);
     window.parent.postMessage({ event: eventNameWithId, payload: { ready: true } }, window.location.origin);
   };
@@ -563,7 +502,7 @@ class Ubidots {
     if (!eventName) return;
 
     const eventHandlers = {
-      // V1 events
+      // V1 Events
       [EVENTS.V1.IS_REALTIME_ACTIVE]: this._setRealTime,
       [EVENTS.V1.RECEIVED_HEADERS]: this._setHeaders,
       [EVENTS.V1.RECEIVED_JWT_TOKEN]: this._setJWTToken,
@@ -602,11 +541,14 @@ class Ubidots {
     };
 
     // External callbacks
-    const handler = eventHandlers[eventName];
+
+    const { eventName: parsedEventName } = this._parseEvent(eventName);
+
+    const handler = eventHandlers[parsedEventName];
     if (handler) handler(payload);
 
-    if (typeof this._eventsCallback[event.data.event] === 'function') {
-      this._eventsCallback[event.data.event](event.data.payload);
+    if (typeof this._eventsCallback[parsedEventName] === 'function') {
+      this._eventsCallback[parsedEventName](event.data.payload);
     }
 
     if (
