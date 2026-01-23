@@ -245,6 +245,39 @@ describe('Array', () => {
       expect(spy.notCalled).to.be.ok();
     });
 
+    it('should execute the ready callback exactly once when all conditions are met', () => {
+      global.window = {
+        location: { origin: 'http://127.0.0.1' },
+        parent: { postMessage: sinon.spy() },
+        addEventListener: sinon.spy(),
+        widgetId: 'test-widget-123',
+      };
+
+      const ubidots = new Ubidots();
+      ubidots.state.widgetReady = false;
+
+      const spy = sinon.spy();
+      ubidots.on('ready', spy);
+
+      // Pre-fill required values
+      ubidots._token = 'prefilled-token';
+      ubidots._dashboardDateRange = { start: 123, end: 456 };
+      ubidots._dashboardObject = { name: 'dashboard', label: 'dashboard-label' };
+
+      // Trigger a message that will cause the ready check
+      const event = {
+        origin: 'http://127.0.0.1',
+        data: {
+          event: 'receivedToken',
+          payload: 'test-token',
+        },
+      };
+      ubidots._listenMessage(event);
+
+      // The ready callback should be called exactly once, not twice
+      expect(spy.calledOnce).to.be.ok();
+    });
+
     // todo: replace v2:widget:ready for v2:widget:loaded
     // it('should execute the ready event if the previous values are set', () => {
     //   const ubidots = setUp();
