@@ -557,6 +557,7 @@ class Ubidots {
       this._dashboardObject !== undefined &&
       !this.state.widgetReady
     ) {
+      this._eventsCallback.ready?.();
       this.state.widgetReady = true;
       this._emitReady();
     }
