@@ -485,7 +485,7 @@ class Ubidots {
     const eventNameWithId = this._getWidgetEventWithId(EVENTS.V2.WIDGET.READY);
 
     this._eventsCallback[eventNameWithId]?.();
-    this._eventsCallback?.ready?.();
+    this._eventsCallback?.ready();
     window.parent.postMessage({ event: EVENTS.V1.READY, payload: { ready: true } }, window.location.origin);
     window.parent.postMessage({ event: eventNameWithId, payload: { ready: true } }, window.location.origin);
   };
