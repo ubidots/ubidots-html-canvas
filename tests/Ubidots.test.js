@@ -6,7 +6,7 @@ describe('Array', () => {
   const lastWindow = window;
   const setUp = () => {
     const ubidots = new Ubidots();
-    ubidots.state.widgetReady = true;
+
     return ubidots;
   };
 
@@ -121,6 +121,7 @@ describe('Array', () => {
 
     it("Shouldn't update any event callback object key", () => {
       const obj = setUp();
+
       obj.on('fakeEvent', () => null);
 
       expect(obj._eventsCallback.receivedToken).to.be(null);
@@ -206,9 +207,11 @@ describe('Array', () => {
       expect(obj.token).to.be(token);
     });
 
-    it('should update the dashboard date range value', () => {
+    it("should update the dashboard date range value and doesn't call any callback function", () => {
       const obj = setUp();
       global.window = { location: { origin: 'http://127.0.0.1' } };
+
+      const spy = sinon.spy();
 
       const selectedDashboardDateRange = {
         start: 908745678908756,
@@ -223,6 +226,7 @@ describe('Array', () => {
       };
       obj._listenMessage(event);
 
+      expect(spy.notCalled).to.be.ok();
       expect(obj.dashboardDateRange).to.be(selectedDashboardDateRange);
     });
 
@@ -245,26 +249,18 @@ describe('Array', () => {
       expect(spy.notCalled).to.be.ok();
     });
 
-    it('should execute the ready callback exactly once when all conditions are met', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const ubidots = new Ubidots();
-      ubidots.state.widgetReady = false;
+    it('should execute the ready event if the previous values are set', () => {
+      const ubidots = setUp();
+      global.window = { location: { origin: 'http://127.0.0.1' } };
 
       const spy = sinon.spy();
       ubidots.on('ready', spy);
 
-      // Pre-fill required values
       ubidots._token = 'prefilled-token';
-      ubidots._dashboardDateRange = { start: 123, end: 456 };
-      ubidots._dashboardObject = { name: 'dashboard', label: 'dashboard-label' };
+      ubidots._selectedDevice = 'prefilled-device';
+      ubidots._dashboardDateRange = 'prefilled-date';
+      ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
 
-      // Trigger a message that will cause the ready check
       const event = {
         origin: 'http://127.0.0.1',
         data: {
@@ -274,64 +270,35 @@ describe('Array', () => {
       };
       ubidots._listenMessage(event);
 
-      // The ready callback should be called exactly once, not twice
-      expect(spy.calledOnce).to.be.ok();
+      expect(spy.called).to.be.ok();
     });
 
-    // todo: replace v2:widget:ready for v2:widget:loaded
-    // it('should execute the ready event if the previous values are set', () => {
-    //   const ubidots = setUp();
-    //   global.window = { location: { origin: 'http://127.0.0.1' } };
-    //
-    //   const spy = sinon.spy();
-    //   ubidots.on('ready', spy);
-    //
-    //   ubidots._token = 'prefilled-token';
-    //   ubidots._selectedDevice = 'prefilled-device';
-    //   ubidots._dashboardDateRange = 'prefilled-date';
-    //   ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
-    //
-    //   const event = {
-    //     origin: 'http://127.0.0.1',
-    //     data: {
-    //       event: 'receivedToken',
-    //       payload: 'test-token',
-    //     },
-    //   };
-    //   ubidots._listenMessage(event);
-    //
-    //   expect(spy.called).to.be.ok();
-    // });
+    it('should execute the ready event only once in the lifetime', () => {
+      const ubidots = setUp();
+      global.window = { location: { origin: 'http://127.0.0.1' } };
 
-    //
-    // todo: replace v2:widget:ready for v2:widget:loaded
-    //
-    // it('should execute the ready event only once in the lifetime', () => {
-    //   const ubidots = setUp();
-    //   global.window = { location: { origin: 'http://127.0.0.1' } };
-    //
-    //   const spy = sinon.spy();
-    //   ubidots.on('ready', spy);
-    //
-    //   ubidots._token = 'prefilled-token';
-    //   ubidots._selectedDevice = 'prefilled-device';
-    //   ubidots._dashboardDateRange = 'prefilled-date';
-    //   ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
-    //
-    //   const event = {
-    //     origin: 'http://127.0.0.1',
-    //     data: {
-    //       event: 'receivedToken',
-    //       payload: 'test-token',
-    //     },
-    //   };
-    //
-    //   for (let i = 0; i < 50; i++) {
-    //     ubidots._listenMessage(event);
-    //   }
-    //
-    //   expect(spy.calledOnce).to.be.ok();
-    // });
+      const spy = sinon.spy();
+      ubidots.on('ready', spy);
+
+      ubidots._token = 'prefilled-token';
+      ubidots._selectedDevice = 'prefilled-device';
+      ubidots._dashboardDateRange = 'prefilled-date';
+      ubidots._dashboardObject = { name: 'name device', label: 'device-label' };
+
+      const event = {
+        origin: 'http://127.0.0.1',
+        data: {
+          event: 'receivedToken',
+          payload: 'test-token',
+        },
+      };
+
+      for (let i = 0; i < 50; i++) {
+        ubidots._listenMessage(event);
+      }
+
+      expect(spy.calledOnce).to.be.ok();
+    });
 
     it('should update the headers property', () => {
       const ubidots = setUp();
@@ -532,7 +499,7 @@ describe('Array', () => {
       const deviceIds = ['device1', 'device2', 'device3'];
       obj.setDashboardDevices(deviceIds);
 
-      expect(spy.calledTwice).to.be.ok();
+      expect(spy.calledOnce).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceIds })).to.be.ok();
     });
 
@@ -549,7 +516,7 @@ describe('Array', () => {
       const deviceIds = 'device1,device2,device3';
       obj.setDashboardDevices(deviceIds);
 
-      expect(spy.calledTwice).to.be.ok();
+      expect(spy.calledOnce).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceIds })).to.be.ok();
     });
 
@@ -566,7 +533,7 @@ describe('Array', () => {
       const deviceIds = ['~device-label-1', '~device-label-2'];
       obj.setDashboardDevices(deviceIds);
 
-      expect(spy.calledTwice).to.be.ok();
+      expect(spy.calledOnce).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceIds })).to.be.ok();
     });
 
@@ -583,7 +550,7 @@ describe('Array', () => {
       const deviceId = 'singleDeviceId';
       obj.setDashboardDevices(deviceId);
 
-      expect(spy.calledTwice).to.be.ok();
+      expect(spy.calledOnce).to.be.ok();
       expect(spy.calledWithExactly({ event: 'setDashboardDevices', payload: deviceId })).to.be.ok();
     });
 
@@ -598,313 +565,13 @@ describe('Array', () => {
       const deviceIds = ['device1', 'device2'];
       obj.setDashboardDevices(deviceIds);
 
-      expect(global.window.parent.postMessage.calledTwice).to.be.ok();
+      expect(global.window.parent.postMessage.calledOnce).to.be.ok();
       expect(
         global.window.parent.postMessage.calledWithExactly(
           { event: 'setDashboardDevices', payload: deviceIds },
           'http://test.ubidots.com'
         )
       ).to.be.ok();
-    });
-  });
-
-  describe('#_parseEvent', () => {
-    it('should return isValidEvent false for invalid event names', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const obj = new Ubidots();
-      const result = obj._parseEvent('invalidEventName');
-
-      expect(result.isValidEvent).to.be(false);
-      expect(result.eventName).to.be('invalidEventName');
-    });
-
-    it('should return isValidEvent true for valid V1 event names without transformation', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const obj = new Ubidots();
-      const result = obj._parseEvent('ready');
-
-      expect(result.isValidEvent).to.be(true);
-      expect(result.eventName).to.be('ready');
-    });
-
-    it('should return isValidEvent true for valid V2 non-widget event names without transformation', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const obj = new Ubidots();
-      const result = obj._parseEvent('v2:auth:token');
-
-      expect(result.isValidEvent).to.be(true);
-      expect(result.eventName).to.be('v2:auth:token');
-    });
-
-    it('should transform v2:widget:* events by appending widget ID', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const obj = new Ubidots();
-      const result = obj._parseEvent('v2:widget:data');
-
-      expect(result.isValidEvent).to.be(true);
-      expect(result.eventName).to.be('v2:widget:data:test-widget-123');
-    });
-
-    it('should transform v2:widget:ready event by appending widget ID', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'abc-xyz-789',
-      };
-
-      const obj = new Ubidots();
-      const result = obj._parseEvent('v2:widget:ready');
-
-      expect(result.isValidEvent).to.be(true);
-      expect(result.eventName).to.be('v2:widget:ready:abc-xyz-789');
-    });
-
-    it('should transform v2:widget:error event by appending widget ID', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'widget-456',
-      };
-
-      const obj = new Ubidots();
-      const result = obj._parseEvent('v2:widget:error');
-
-      expect(result.isValidEvent).to.be(true);
-      expect(result.eventName).to.be('v2:widget:error:widget-456');
-    });
-  });
-
-  describe('#on with V2 widget events', () => {
-    it('should register callback for v2:widget:data with widget ID appended', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const obj = new Ubidots();
-      const callback = sinon.spy();
-
-      obj.on('v2:widget:data', callback);
-
-      expect(typeof obj._eventsCallback['v2:widget:data:test-widget-123']).to.be('function');
-      expect(obj._eventsCallback['v2:widget:data:test-widget-123']).to.be(callback);
-    });
-
-    it('should register callback for v2:widget:ready with widget ID appended', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'widget-xyz',
-      };
-
-      const obj = new Ubidots();
-      const callback = sinon.spy();
-
-      obj.on('v2:widget:ready', callback);
-
-      expect(typeof obj._eventsCallback['v2:widget:ready:widget-xyz']).to.be('function');
-      expect(obj._eventsCallback['v2:widget:ready:widget-xyz']).to.be(callback);
-    });
-
-    it('should not register callback for invalid widget event', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const obj = new Ubidots();
-      const callback = sinon.spy();
-      const initialCallbacks = { ...obj._eventsCallback };
-
-      obj.on('v2:widget:invalidEvent', callback);
-
-      // Should not add any new callbacks
-      expect(Object.keys(obj._eventsCallback).length).to.be(Object.keys(initialCallbacks).length);
-    });
-  });
-
-  describe('#_listenMessage with V2 widget events', () => {
-    it('should trigger callback when receiving v2:widget:data event from dashboard', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'test-widget-123',
-      };
-
-      const obj = new Ubidots();
-      obj.state.widgetReady = true;
-      const callback = sinon.spy();
-
-      obj.on('v2:widget:data', callback);
-
-      const event = {
-        origin: 'http://127.0.0.1',
-        data: {
-          event: 'v2:widget:data',
-          payload: { data: [1, 2, 3] },
-        },
-      };
-
-      obj._listenMessage(event);
-
-      expect(callback.calledOnce).to.be.ok();
-      expect(callback.calledWith({ data: [1, 2, 3] })).to.be.ok();
-    });
-
-    it('should trigger callback when receiving v2:widget:ready event from dashboard', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'widget-abc',
-      };
-
-      const obj = new Ubidots();
-      obj.state.widgetReady = true;
-      const callback = sinon.spy();
-
-      obj.on('v2:widget:ready', callback);
-
-      const event = {
-        origin: 'http://127.0.0.1',
-        data: {
-          event: 'v2:widget:ready',
-          payload: { variables: ['var1', 'var2'] },
-        },
-      };
-
-      obj._listenMessage(event);
-
-      expect(callback.calledOnce).to.be.ok();
-      expect(callback.calledWith({ variables: ['var1', 'var2'] })).to.be.ok();
-    });
-
-    it('should trigger callback when receiving v2:widget:error event from dashboard', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'widget-error-test',
-      };
-
-      const obj = new Ubidots();
-      obj.state.widgetReady = true;
-      const callback = sinon.spy();
-
-      obj.on('v2:widget:error', callback);
-
-      const event = {
-        origin: 'http://127.0.0.1',
-        data: {
-          event: 'v2:widget:error',
-          payload: { error: 'Something went wrong' },
-        },
-      };
-
-      obj._listenMessage(event);
-
-      expect(callback.calledOnce).to.be.ok();
-      expect(callback.calledWith({ error: 'Something went wrong' })).to.be.ok();
-    });
-
-    it('should NOT trigger callback for different widget ID', () => {
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'widget-123',
-      };
-
-      const obj = new Ubidots();
-      obj.state.widgetReady = true;
-      const callback = sinon.spy();
-
-      obj.on('v2:widget:data', callback);
-
-      // Event comes with different widget ID
-      const event = {
-        origin: 'http://127.0.0.1',
-        data: {
-          event: 'v2:widget:data:widget-456', // Different widget ID
-          payload: { data: [1, 2, 3] },
-        },
-      };
-
-      obj._listenMessage(event);
-
-      // Callback should NOT be called because widget IDs don't match
-      expect(callback.called).to.not.be.ok();
-    });
-
-    it('should handle multiple widgets with same event type independently', () => {
-      // Widget 1
-      global.window = {
-        location: { origin: 'http://127.0.0.1' },
-        parent: { postMessage: sinon.spy() },
-        addEventListener: sinon.spy(),
-        widgetId: 'widget-1',
-      };
-
-      const widget1 = new Ubidots();
-      widget1.state.widgetReady = true;
-      const callback1 = sinon.spy();
-      widget1.on('v2:widget:data', callback1);
-
-      // Widget 2
-      global.window.widgetId = 'widget-2';
-      const widget2 = new Ubidots();
-      widget2.state.widgetReady = true;
-      const callback2 = sinon.spy();
-      widget2.on('v2:widget:data', callback2);
-
-      // Event for widget 1
-      const event1 = {
-        origin: 'http://127.0.0.1',
-        data: {
-          event: 'v2:widget:data',
-          payload: { data: 'for widget 1' },
-        },
-      };
-
-      widget1._listenMessage(event1);
-
-      expect(callback1.calledOnce).to.be.ok();
-      expect(callback1.calledWith({ data: 'for widget 1' })).to.be.ok();
-
-      // Widget 2's callback should not be triggered
-      expect(callback2.called).to.not.be.ok();
     });
   });
 });

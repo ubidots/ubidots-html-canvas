@@ -1,6 +1,28 @@
 import { Widget } from './Widget';
 import { Ubidots as UJL } from '@ubidots/ubidots-javascript-library';
-import { EVENTS, plainEvents } from './events';
+
+const EventsTypes = {
+  IS_REALTIME_ACTIVE: 'isRealTimeActive',
+  OPEN_DRAWER: 'openDrawer',
+  RECEIVED_HEADERS: 'receivedHeaders',
+  RECEIVED_JWT_TOKEN: 'receivedJWTToken',
+  RECEIVED_TOKEN: 'receivedToken',
+  REFRESH_DASHBOARD: 'refreshDashboard',
+  SELECTED_DASHBOARD_DATE_RANGE: 'selectedDashboardDateRange',
+  SELECTED_DASHBOARD_OBJECT: 'selectedDashboardObject',
+  SELECTED_DEVICE_OBJECT: 'selectedDeviceObject',
+  SELECTED_DEVICE_OBJECTS: 'selectedDeviceObjects',
+  SELECTED_DEVICE: 'selectedDevice',
+  SELECTED_DEVICES: 'selectedDevices',
+  SELECTED_FILTERS: 'selectFilter',
+  SET_DASHBOARD_DATE_RANGE: 'setDashboardDateRange',
+  SET_DASHBOARD_DEVICE: 'setDashboardDevice',
+  SET_DASHBOARD_DEVICES: 'setDashboardDevices',
+  SET_DASHBOARD_LAYER: 'setDashboardLayer',
+  SET_DASHBOARD_MULTIPLE_DEVICES: 'setDashboardMultipleDevices',
+  SET_FULL_SCREEN: 'setFullScreen',
+  SET_REAL_TIME: 'setRealTime',
+};
 
 /**
  * Create a listener to be able to listen to the Ubidots messages.
@@ -23,21 +45,10 @@ class Ubidots {
       selectedDeviceObjects: null,
       selectedFilters: null,
     };
-
-    this.state = {
-      widgetReady: false,
-      dashboardDevices: [],
-      variables: [],
-    };
-
     this._headers = {};
     this.widget = new Widget(window.widgetId);
     this.api = UJL;
     window.addEventListener('message', this._listenMessage);
-  }
-
-  _getWidgetEventWithId(eventName) {
-    return `${eventName}:${this.widget.getId()}`;
   }
 
   /**
@@ -60,8 +71,7 @@ class Ubidots {
    * @deprecated Use setDashboardDevices instead
    */
   setDashboardDevice(deviceId) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_DEVICE, payload: deviceId });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceId });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DEVICE, payload: deviceId });
   }
 
   /**
@@ -70,8 +80,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setDashboardDevices(deviceIds) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_DEVICES, payload: deviceIds });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceIds });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DEVICES, payload: deviceIds });
   }
 
   /**
@@ -81,8 +90,7 @@ class Ubidots {
    * @deprecated Use setDashboardDevices instead
    */
   setDashboardMultipleDevices(deviceIds) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_MULTIPLE_DEVICES, payload: deviceIds });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.DEVICES.SELECTED, payload: deviceIds });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_MULTIPLE_DEVICES, payload: deviceIds });
   }
 
   /**
@@ -92,20 +100,18 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setDashboardLayer(layerId, params = {}) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_DASHBOARD_LAYER, payload: { layerId, params } });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.LAYER, payload: { layerId, params } });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_LAYER, payload: { layerId, params } });
   }
 
   /**
    * Set Dashboard Data Range
+   * @param {Object}
    * @property {number} start - Initial selected date
    * @property {number} end - End selected date
    * @memberOf Ubidots
-   * @param range
    */
   setDashboardDateRange(range) {
-    this._sendPostMessage({ event: EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE, payload: range });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.DATERANGE, payload: range });
+    this._sendPostMessage({ event: EventsTypes.SET_DASHBOARD_DATE_RANGE, payload: range });
   }
 
   /**
@@ -114,8 +120,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setRealTime(enableRealTime) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_REALTIME, payload: enableRealTime });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.RT, payload: enableRealTime });
+    this._sendPostMessage({ event: EventsTypes.SET_REAL_TIME, payload: enableRealTime });
   }
 
   /**
@@ -123,8 +128,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   refreshDashboard() {
-    this._sendPostMessage({ event: EVENTS.V1.REFRESH_DASHBOARD });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.REFRESHED });
+    this._sendPostMessage({ event: EventsTypes.REFRESH_DASHBOARD });
   }
 
   /**
@@ -133,8 +137,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setFullScreen(fullScreenAction) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_FULLSCREEN, payload: fullScreenAction });
-    this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.FULLSCREEN, payload: fullScreenAction });
+    this._sendPostMessage({ event: EventsTypes.SET_FULL_SCREEN, payload: fullScreenAction });
   }
 
   /**
@@ -145,8 +148,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   openDrawer(drawerInfo) {
-    this._sendPostMessage({ event: EVENTS.V1.OPEN_DRAWER, payload: { drawerInfo, id: this.widget.getId() } });
-    this._sendPostMessage({ event: EVENTS.V2.WIDGET.OPEN_DRAWER, payload: { drawerInfo, id: this.widget.getId() } });
+    this._sendPostMessage({ event: EventsTypes.OPEN_DRAWER, payload: { drawerInfo, id: this.widget.getId() } });
   }
 
   /**
@@ -330,14 +332,6 @@ class Ubidots {
     this._deviceObject = deviceObject;
   };
 
-  _setDashboardDevices = devices => {
-    this.state.dashboardDevices = devices;
-  };
-
-  get dashboardDevices() {
-    return this.state.dashboardDevices;
-  }
-
   /**
    * Get the selected device objects.
    * @returns {Array} The selected device objects.
@@ -393,23 +387,6 @@ class Ubidots {
   _setSelectedFilters = selectedFilters => {
     this._selectedFilters = selectedFilters;
   };
-
-  _parseEvent = eventName => {
-    if (!plainEvents.includes(eventName))
-      return {
-        isValidEvent: false,
-        eventName,
-      };
-
-    const isWidgetEvent = eventName.includes('v2:widget:');
-
-    if (isWidgetEvent) {
-      const eventNameWithId = this._getWidgetEventWithId(eventName);
-      return { isValidEvent: true, eventName: eventNameWithId };
-    }
-    return { isValidEvent: true, eventName };
-  };
-
   /**
    * Make a window listener event to receive dashboard messages
    * @param {String} eventName - Event name to listen
@@ -418,147 +395,53 @@ class Ubidots {
    * @memberOf Ubidots
    */
   on = (eventName, callback) => {
-    const { isValidEvent, eventName: parsedEventName } = this._parseEvent(eventName);
-    if (isValidEvent) {
-      this._eventsCallback[parsedEventName] = callback;
+    if (Object.keys(this._eventsCallback).includes(eventName)) {
+      this._eventsCallback[eventName] = callback;
     }
-  };
-
-  /**
-   * Handle fullscreen V2 event
-   * @param {Object} payload - Event payload
-   * @private
-   * @memberOf Ubidots
-   */
-  _handleFullScreen = payload => {
-    if (typeof this._eventsCallback[EVENTS.V1.SET_FULLSCREEN] === 'function') {
-      this._eventsCallback[EVENTS.V1.SET_FULLSCREEN](payload);
-    }
-  };
-
-  /**
-   * Handle device selected V2 event (single or multiple)
-   * @param {String|Array} payload - Device id(s)
-   * @private
-   * @memberOf Ubidots
-   */
-  _handleDeviceSelected = payload => {
-    if (Array.isArray(payload)) {
-      this._setSelectedDevices(payload);
-    } else {
-      this._setSelectedDevice(payload);
-    }
-  };
-
-  /**
-   * Handle widget ready V2 event and set variables
-   * @param {Array} payload - Variables array
-   * @private
-   * @memberOf Ubidots
-   */
-  _handleWidgetReady = payload => {
-    this.widget.setVariables(payload);
-  };
-
-  /**
-   * Handle widget data V2 event and set data to widget
-   * @param {*} payload - Widget data
-   * @private
-   * @memberOf Ubidots
-   */
-  _handleWidgetData = payload => {
-    this.widget.setData(payload);
-  };
-
-  /**
-   * Handle widget error V2 event and set error state to widget
-   * @param {*} payload - Widget error
-   * @private
-   * @memberOf Ubidots
-   */
-  _handleWidgetError = payload => {
-    this.widget.setError(payload);
-  };
-
-  // eslint-disable-next-line class-methods-use-this
-  _emitReady = () => {
-    const eventNameWithId = this._getWidgetEventWithId(EVENTS.V2.WIDGET.READY);
-
-    this._eventsCallback[eventNameWithId]?.();
-    this._eventsCallback?.ready?.();
-    window.parent.postMessage({ event: EVENTS.V1.READY, payload: { ready: true } }, window.location.origin);
-    window.parent.postMessage({ event: eventNameWithId, payload: { ready: true } }, window.location.origin);
   };
 
   /**
    * Make a window listener event to receive dashboard messages and set data values to class attributes
-   * @param {Object} event - Message event from window
+   * @param {String} eventName - Event name to listen
+   * @param {Function} [callback] - Function to execute when be listen to the message
+   *
    * @private
    * @memberOf Ubidots
    */
   _listenMessage = event => {
     if (event.origin !== window.location.origin) return;
     const { event: eventName, payload } = event.data;
-    if (!eventName) return;
 
     const eventHandlers = {
-      // V1 Events
-      [EVENTS.V1.IS_REALTIME_ACTIVE]: this._setRealTime,
-      [EVENTS.V1.RECEIVED_HEADERS]: this._setHeaders,
-      [EVENTS.V1.RECEIVED_JWT_TOKEN]: this._setJWTToken,
-      [EVENTS.V1.RECEIVED_TOKEN]: this._setToken,
-      [EVENTS.V1.SELECTED_DATE_RANGE]: this._setDashboardDateRange,
-      [EVENTS.V1.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
-      [EVENTS.V1.SELECTED_DEVICE]: this._setSelectedDevice,
-      [EVENTS.V1.SELECTED_DEVICES]: this._setSelectedDevices,
-      [EVENTS.V1.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
-      [EVENTS.V1.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
-      [EVENTS.V1.SELECTED_FILTERS]: this._setSelectedFilters,
-      [EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
-
-      // V2 Auth events
-      [EVENTS.V2.AUTH.TOKEN]: this._setToken,
-      [EVENTS.V2.AUTH.JWT]: this._setJWTToken,
-      [EVENTS.V2.AUTH.HEADERS]: this._setHeaders,
-
-      // V2 Dashboard settings events
-      [EVENTS.V2.DASHBOARD.SETTINGS.DATERANGE]: this._setDashboardDateRange,
-      [EVENTS.V2.DASHBOARD.SETTINGS.FILTERS]: this._setSelectedFilters,
-      [EVENTS.V2.DASHBOARD.SETTINGS.RT]: this._setRealTime,
-      [EVENTS.V2.DASHBOARD.SETTINGS.FULLSCREEN]: this._handleFullScreen,
-
-      // V2 Dashboard device events
-      [EVENTS.V2.DASHBOARD.DEVICES.SELECTED]: this._handleDeviceSelected,
-      [EVENTS.V2.DASHBOARD.DEVICES.ALL_DEVICES]: this._setDashboardDevices,
-
-      // V2 Dashboard self events
-      [EVENTS.V2.DASHBOARD.SELF]: this._setDashboardObject,
-
-      // Widget events
-      [EVENTS.V2.WIDGET.DATA]: this._handleWidgetData,
-      [EVENTS.V2.WIDGET.READY]: this._handleWidgetReady,
-      [EVENTS.V2.WIDGET.ERROR]: this._handleWidgetError,
+      [EventsTypes.IS_REALTIME_ACTIVE]: this._setRealTime,
+      [EventsTypes.RECEIVED_HEADERS]: this._setHeaders,
+      [EventsTypes.RECEIVED_JWT_TOKEN]: this._setJWTToken,
+      [EventsTypes.RECEIVED_TOKEN]: this._setToken,
+      [EventsTypes.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
+      [EventsTypes.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
+      [EventsTypes.SELECTED_DEVICE]: this._setSelectedDevice,
+      [EventsTypes.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
+      [EventsTypes.SELECTED_DEVICES]: this._setSelectedDevices,
+      [EventsTypes.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
+      [EventsTypes.SELECTED_FILTERS]: this._setSelectedFilters,
     };
 
-    // External callbacks
-
-    const { eventName: parsedEventName } = this._parseEvent(eventName);
-
-    const handler = eventHandlers[parsedEventName];
+    const handler = eventHandlers[eventName];
     if (handler) handler(payload);
 
-    if (typeof this._eventsCallback[parsedEventName] === 'function') {
-      this._eventsCallback[parsedEventName](event.data.payload);
+    if (typeof this._eventsCallback[event.data.event] === 'function') {
+      this._eventsCallback[event.data.event](event.data.payload);
     }
 
     if (
       (this._token || this._jwtToken) &&
+      this._selectedDevice !== undefined &&
       this._dashboardDateRange !== undefined &&
       this._dashboardObject !== undefined &&
-      !this.state.widgetReady
+      typeof this._eventsCallback.ready === 'function'
     ) {
-      this.state.widgetReady = true;
-      this._emitReady();
+      this._eventsCallback.ready();
+      this._eventsCallback.ready = null;
     }
   };
 }
