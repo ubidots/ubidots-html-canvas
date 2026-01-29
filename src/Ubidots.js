@@ -562,11 +562,6 @@ class Ubidots {
       this.dashboardObject != null &&
       this.selectedFilters != null;
 
-    // Debug selectedDevice
-    if (eventName === 'selectedDevice') {
-      console.log('v1 selectedDevice event received', { eventName, payload });
-    }
-
     if (allPropertiesReady && !this.state.widgetReady) {
       this.state.widgetReady = true;
       this._emitReady();
