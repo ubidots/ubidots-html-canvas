@@ -551,12 +551,23 @@ class Ubidots {
       this._eventsCallback[parsedEventName](event.data.payload);
     }
 
-    if (
-      (this._token || this._jwtToken) &&
-      this._dashboardDateRange !== undefined &&
-      this._dashboardObject !== undefined &&
-      !this.state.widgetReady
-    ) {
+    const allPropertiesReady =
+      (this.token != null || this.jwtToken != null) &&
+      this.selectedDevice != null &&
+      this.selectedDevices != null &&
+      this.dashboardDateRange != null &&
+      this.realTime != null &&
+      this.deviceObject != null &&
+      this.selectedDeviceObjects != null &&
+      this.dashboardObject != null &&
+      this.selectedFilters != null;
+
+    // Debug selectedDevice
+    if (eventName === 'selectedDevice') {
+      console.log('v1 selectedDevice event received', { eventName, payload });
+    }
+
+    if (allPropertiesReady && !this.state.widgetReady) {
       this.state.widgetReady = true;
       this._emitReady();
     }
