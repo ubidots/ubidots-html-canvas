@@ -114,7 +114,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setRealTime(enableRealTime) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_REALTIME, payload: enableRealTime });
+    this._sendPostMessage({ event: EVENTS.V1.SET_REAL_TIME, payload: enableRealTime });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.RT, payload: enableRealTime });
   }
 
