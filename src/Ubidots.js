@@ -104,7 +104,7 @@ class Ubidots {
    * @param range
    */
   setDashboardDateRange(range) {
-    this._sendPostMessage({ event: EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE, payload: range });
+    this._sendPostMessage({ event: EVENTS.V1.SELECTED_DATE_RANGE, payload: range });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.DATERANGE, payload: range });
   }
 

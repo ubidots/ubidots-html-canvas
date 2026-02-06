@@ -8,7 +8,6 @@ export const EVENTS = {
     RECEIVED_JWT_TOKEN: 'receivedJWTToken',
     RECEIVED_TOKEN: 'receivedToken',
     REFRESH_DASHBOARD: 'refreshDashboard',
-    SELECTED_DASHBOARD_DATE_RANGE: 'selectedDashboardDateRange',
     SELECTED_DASHBOARD_OBJECT: 'selectedDashboardObject',
     SELECTED_DEVICE_OBJECT: 'selectedDeviceObject',
     SELECTED_DEVICE_OBJECTS: 'selectedDeviceObjects',
