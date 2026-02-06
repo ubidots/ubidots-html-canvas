@@ -514,7 +514,6 @@ class Ubidots {
       [EVENTS.V1.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
       [EVENTS.V1.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
       [EVENTS.V1.SELECTED_FILTERS]: this._setSelectedFilters,
-      [EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
 
       // V2 Auth events
       [EVENTS.V2.AUTH.TOKEN]: this._setToken,
