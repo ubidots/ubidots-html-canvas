@@ -104,7 +104,7 @@ class Ubidots {
    * @param range
    */
   setDashboardDateRange(range) {
-    this._sendPostMessage({ event: EVENTS.V1.SELECTED_DATE_RANGE, payload: range });
+    this._sendPostMessage({ event: EVENTS.V1.SET_DATERANGE, payload: range });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.DATERANGE, payload: range });
   }
 
@@ -175,8 +175,8 @@ class Ubidots {
       'Content-type': 'application/json',
     };
 
-    if (this._jwttoken) {
-      headers['Authorization'] = `Bearer ${this._jwttoken}`;
+    if (this.jwtToken) {
+      headers['Authorization'] = `Bearer ${this.jwtToken}`;
       return headers;
     }
 
@@ -507,7 +507,8 @@ class Ubidots {
       [EVENTS.V1.RECEIVED_HEADERS]: this._setHeaders,
       [EVENTS.V1.RECEIVED_JWT_TOKEN]: this._setJWTToken,
       [EVENTS.V1.RECEIVED_TOKEN]: this._setToken,
-      [EVENTS.V1.SELECTED_DATE_RANGE]: this._setDashboardDateRange,
+      [EVENTS.V1.SET_DATERANGE]: this._setDashboardDateRange,
+      [EVENTS.V1.SELECTED_DATERANGE]: this._setDashboardDateRange,
       [EVENTS.V1.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
       [EVENTS.V1.SELECTED_DEVICE]: this._setSelectedDevice,
       [EVENTS.V1.SELECTED_DEVICES]: this._setSelectedDevices,
