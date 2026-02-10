@@ -261,8 +261,14 @@ describe('Array', () => {
 
       // Pre-fill required values
       ubidots._token = 'prefilled-token';
+      ubidots._selectedDevice = 'prefilled-device';
+      ubidots._selectedDevices = ['prefilled-device'];
       ubidots._dashboardDateRange = { start: 123, end: 456 };
+      ubidots._realTime = true;
+      ubidots._deviceObject = { id: 'device-1', name: 'Device 1' };
+      ubidots._selectedDeviceObjects = [{ id: 'device-1', name: 'Device 1' }];
       ubidots._dashboardObject = { name: 'dashboard', label: 'dashboard-label' };
+      ubidots._selectedFilters = {};
 
       // Trigger a message that will cause the ready check
       const event = {

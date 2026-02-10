@@ -104,7 +104,7 @@ class Ubidots {
    * @param range
    */
   setDashboardDateRange(range) {
-    this._sendPostMessage({ event: EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE, payload: range });
+    this._sendPostMessage({ event: EVENTS.V1.SET_DATERANGE, payload: range });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.DATERANGE, payload: range });
   }
 
@@ -114,7 +114,7 @@ class Ubidots {
    * @memberOf Ubidots
    */
   setRealTime(enableRealTime) {
-    this._sendPostMessage({ event: EVENTS.V1.SET_REALTIME, payload: enableRealTime });
+    this._sendPostMessage({ event: EVENTS.V1.SET_REAL_TIME, payload: enableRealTime });
     this._sendPostMessage({ event: EVENTS.V2.DASHBOARD.SETTINGS.RT, payload: enableRealTime });
   }
 
@@ -175,8 +175,8 @@ class Ubidots {
       'Content-type': 'application/json',
     };
 
-    if (this._jwttoken) {
-      headers['Authorization'] = `Bearer ${this._jwttoken}`;
+    if (this.jwtToken) {
+      headers['Authorization'] = `Bearer ${this.jwtToken}`;
       return headers;
     }
 
@@ -507,14 +507,14 @@ class Ubidots {
       [EVENTS.V1.RECEIVED_HEADERS]: this._setHeaders,
       [EVENTS.V1.RECEIVED_JWT_TOKEN]: this._setJWTToken,
       [EVENTS.V1.RECEIVED_TOKEN]: this._setToken,
-      [EVENTS.V1.SELECTED_DATE_RANGE]: this._setDashboardDateRange,
+      [EVENTS.V1.SET_DATERANGE]: this._setDashboardDateRange,
+      [EVENTS.V1.SELECTED_DATERANGE]: this._setDashboardDateRange,
       [EVENTS.V1.SELECTED_DASHBOARD_OBJECT]: this._setDashboardObject,
       [EVENTS.V1.SELECTED_DEVICE]: this._setSelectedDevice,
       [EVENTS.V1.SELECTED_DEVICES]: this._setSelectedDevices,
       [EVENTS.V1.SELECTED_DEVICE_OBJECT]: this._setDeviceObject,
       [EVENTS.V1.SELECTED_DEVICE_OBJECTS]: this._setSelectedDeviceObjects,
       [EVENTS.V1.SELECTED_FILTERS]: this._setSelectedFilters,
-      [EVENTS.V1.SELECTED_DASHBOARD_DATE_RANGE]: this._setDashboardDateRange,
 
       // V2 Auth events
       [EVENTS.V2.AUTH.TOKEN]: this._setToken,
@@ -551,12 +551,18 @@ class Ubidots {
       this._eventsCallback[parsedEventName](event.data.payload);
     }
 
-    if (
-      (this._token || this._jwtToken) &&
-      this._dashboardDateRange !== undefined &&
-      this._dashboardObject !== undefined &&
-      !this.state.widgetReady
-    ) {
+    const allPropertiesReady =
+      (this.token != null || this.jwtToken != null) &&
+      this.selectedDevice != null &&
+      this.selectedDevices != null &&
+      this.dashboardDateRange != null &&
+      this.realTime != null &&
+      this.deviceObject != null &&
+      this.selectedDeviceObjects != null &&
+      this.dashboardObject != null &&
+      this.selectedFilters != null;
+
+    if (allPropertiesReady && !this.state.widgetReady) {
       this.state.widgetReady = true;
       this._emitReady();
     }
